@@ -88,3 +88,16 @@ def update_site(site_id: int, site_in: SiteUpdate, db: Session = Depends(get_db)
     db.refresh(site)
 
     return site_to_dict(site)
+
+
+@app.delete("/sites/{site_id}")
+def delete_site(site_id: int, db: Session = Depends(get_db)):
+    site = db.get(Site, site_id)
+
+    if site is None:
+        raise HTTPException(status_code=404, detail="Site not found")
+
+    db.delete(site)
+    db.commit()
+
+    return {"deleted": True, "id": site_id}

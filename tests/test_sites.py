@@ -106,3 +106,33 @@ def test_update_site_not_found():
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Site not found"
+
+
+def test_delete_site():
+    create_response = client.post(
+        "/sites",
+        json={
+            "address": f"Kaunas, Trinimo g. {uuid4()}",
+            "customer_name": "Trinamas klientas",
+            "status": "new",
+            "comment": "Bus istrintas",
+        },
+    )
+    assert create_response.status_code == 200
+
+    created = create_response.json()
+
+    delete_response = client.delete(f"/sites/{created['id']}")
+
+    assert delete_response.status_code == 200
+    assert delete_response.json() == {"deleted": True, "id": created["id"]}
+
+    get_response = client.get(f"/sites/{created['id']}")
+    assert get_response.status_code == 404
+
+
+def test_delete_site_not_found():
+    response = client.delete("/sites/999999999")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Site not found"
