@@ -1,0 +1,88 @@
+# FTTH Task Tracker API
+
+Small FastAPI + PostgreSQL backend for tracking FTTH/telecom work sites, statuses, and site history events.
+
+## Current features
+
+- Create, list, get, update, and delete sites
+- Validate site statuses
+- Filter sites by status
+- Site status statistics
+- Add events and notes to sites
+- Automatically create a status_change event when a site's status changes
+- Dockerized API and PostgreSQL
+- Pytest test suite
+
+## Tech stack
+
+- Python
+- FastAPI
+- PostgreSQL
+- SQLAlchemy
+- Alembic
+- Docker Compose
+- Pytest
+
+## Site statuses
+
+- new
+- in_progress
+- blocked
+- done
+- reported
+
+## Site event types
+
+- note
+- issue
+- status_change
+- measurement
+- customer
+
+## Run locally
+
+docker compose up -d --build
+
+## Run tests
+
+docker compose exec api python -m pytest -q
+
+## Health check
+
+curl http://localhost:8000/health/db
+
+## API examples
+
+Create a site:
+
+curl -X POST http://localhost:8000/sites \
+  -H "Content-Type: application/json" \
+  -d '{"address":"Objektas A","status":"new"}'
+
+List sites:
+
+curl http://localhost:8000/sites
+
+Filter sites by status:
+
+curl "http://localhost:8000/sites?status=blocked"
+
+Get site stats:
+
+curl http://localhost:8000/sites/stats
+
+Update site status:
+
+curl -X PATCH http://localhost:8000/sites/1 \
+  -H "Content-Type: application/json" \
+  -d '{"status":"blocked"}'
+
+List site events:
+
+curl http://localhost:8000/sites/1/events
+
+Add a site event:
+
+curl -X POST http://localhost:8000/sites/1/events \
+  -H "Content-Type: application/json" \
+  -d '{"event_type":"issue","message":"Customer did not answer"}'
