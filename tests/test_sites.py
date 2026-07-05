@@ -36,3 +36,32 @@ def test_create_and_list_sites():
 
     sites = list_response.json()
     assert any(site["address"] == address for site in sites)
+
+
+def test_get_site_by_id():
+    payload = {
+        "address": f"Panevezys, Objekto g. {uuid4()}",
+        "customer_name": "Vienas klientas",
+        "status": "in_progress",
+        "comment": "Objekto perziura",
+    }
+
+    create_response = client.post("/sites", json=payload)
+    assert create_response.status_code == 200
+
+    created = create_response.json()
+
+    get_response = client.get(f"/sites/{created['id']}")
+    assert get_response.status_code == 200
+
+    site = get_response.json()
+    assert site["id"] == created["id"]
+    assert site["address"] == payload["address"]
+    assert site["status"] == "in_progress"
+
+
+def test_get_site_not_found():
+    response = client.get("/sites/999999999")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Site not found"

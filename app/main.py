@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -8,6 +8,17 @@ from app.schemas import SiteCreate
 
 
 app = FastAPI()
+
+
+def site_to_dict(site: Site):
+    return {
+        "id": site.id,
+        "address": site.address,
+        "customer_name": site.customer_name,
+        "status": site.status,
+        "comment": site.comment,
+        "created_at": site.created_at,
+    }
 
 
 @app.get("/")
@@ -35,28 +46,20 @@ def create_site(site_in: SiteCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(site)
 
-    return {
-        "id": site.id,
-        "address": site.address,
-        "customer_name": site.customer_name,
-        "status": site.status,
-        "comment": site.comment,
-        "created_at": site.created_at,
-    }
+    return site_to_dict(site)
 
 
 @app.get("/sites")
 def list_sites(db: Session = Depends(get_db)):
     sites = db.execute(select(Site).order_by(Site.id)).scalars().all()
+    return [site_to_dict(site) for site in sites]
 
-    return [
-        {
-            "id": site.id,
-            "address": site.address,
-            "customer_name": site.customer_name,
-            "status": site.status,
-            "comment": site.comment,
-            "created_at": site.created_at,
-        }
-        for site in sites
-    ]
+
+@app.get("/sites/{site_id}")
+def get_site(site_id: int, db: Session = Depends(get_db)):
+    site = db.get(Site, site_id)
+
+    if site is None:
+        raise HTTPException(status_code=404, detail="Site not found")
+
+    return site_to_dict(site)
