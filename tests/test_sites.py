@@ -168,3 +168,44 @@ def test_update_site_rejects_invalid_status():
     )
 
     assert update_response.status_code == 422
+
+
+def test_list_sites_filters_by_status():
+    client.post(
+        "/sites",
+        json={
+            "address": f"Blocked objektas {uuid4()}",
+            "status": "blocked",
+        },
+    )
+
+    client.post(
+        "/sites",
+        json={
+            "address": f"Done objektas {uuid4()}",
+            "status": "done",
+        },
+    )
+
+    client.post(
+        "/sites",
+        json={
+            "address": f"Progress objektas {uuid4()}",
+            "status": "in_progress",
+        },
+    )
+
+    response = client.get("/sites?status=blocked")
+
+    assert response.status_code == 200
+
+    sites = response.json()
+    assert len(sites) == 1
+    assert sites[0]["status"] == "blocked"
+    assert "Blocked objektas" in sites[0]["address"]
+
+
+def test_list_sites_rejects_invalid_status_filter():
+    response = client.get("/sites?status=grybas")
+
+    assert response.status_code == 422

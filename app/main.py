@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.db import get_engine, db_ping, get_db
 from app.models import Site
-from app.schemas import SiteCreate, SiteUpdate
+from app.schemas import SiteCreate, SiteUpdate, SiteStatus
 
 
 app = FastAPI()
@@ -38,7 +38,7 @@ def create_site(site_in: SiteCreate, db: Session = Depends(get_db)):
     site = Site(
         address=site_in.address,
         customer_name=site_in.customer_name,
-        status=site_in.status,
+        status=site_in.status.value,
         comment=site_in.comment,
     )
 
@@ -50,8 +50,13 @@ def create_site(site_in: SiteCreate, db: Session = Depends(get_db)):
 
 
 @app.get("/sites")
-def list_sites(db: Session = Depends(get_db)):
-    sites = db.execute(select(Site).order_by(Site.id)).scalars().all()
+def list_sites(status: SiteStatus | None = None, db: Session = Depends(get_db)):
+    query = select(Site)
+
+    if status is not None:
+        query = query.where(Site.status == status.value)
+
+    sites = db.execute(query.order_by(Site.id)).scalars().all()
     return [site_to_dict(site) for site in sites]
 
 
@@ -79,7 +84,7 @@ def update_site(site_id: int, site_in: SiteUpdate, db: Session = Depends(get_db)
         site.customer_name = site_in.customer_name
 
     if site_in.status is not None:
-        site.status = site_in.status
+        site.status = site_in.status.value
 
     if site_in.comment is not None:
         site.comment = site_in.comment
