@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.db import get_engine, db_ping, get_db
 from app.models import Site
-from app.schemas import SiteCreate
+from app.schemas import SiteCreate, SiteUpdate
 
 
 app = FastAPI()
@@ -61,5 +61,30 @@ def get_site(site_id: int, db: Session = Depends(get_db)):
 
     if site is None:
         raise HTTPException(status_code=404, detail="Site not found")
+
+    return site_to_dict(site)
+
+
+@app.patch("/sites/{site_id}")
+def update_site(site_id: int, site_in: SiteUpdate, db: Session = Depends(get_db)):
+    site = db.get(Site, site_id)
+
+    if site is None:
+        raise HTTPException(status_code=404, detail="Site not found")
+
+    if site_in.address is not None:
+        site.address = site_in.address
+
+    if site_in.customer_name is not None:
+        site.customer_name = site_in.customer_name
+
+    if site_in.status is not None:
+        site.status = site_in.status
+
+    if site_in.comment is not None:
+        site.comment = site_in.comment
+
+    db.commit()
+    db.refresh(site)
 
     return site_to_dict(site)

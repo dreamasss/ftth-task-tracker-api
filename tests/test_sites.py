@@ -65,3 +65,44 @@ def test_get_site_not_found():
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Site not found"
+
+
+def test_update_site():
+    create_response = client.post(
+        "/sites",
+        json={
+            "address": f"Vilnius, Darbo g. {uuid4()}",
+            "customer_name": "Pradinis klientas",
+            "status": "new",
+            "comment": "Dar nepradeta",
+        },
+    )
+    assert create_response.status_code == 200
+
+    created = create_response.json()
+
+    update_response = client.patch(
+        f"/sites/{created['id']}",
+        json={
+            "status": "blocked",
+            "comment": "Truksta leidimo",
+        },
+    )
+
+    assert update_response.status_code == 200
+
+    updated = update_response.json()
+    assert updated["id"] == created["id"]
+    assert updated["address"] == created["address"]
+    assert updated["status"] == "blocked"
+    assert updated["comment"] == "Truksta leidimo"
+
+
+def test_update_site_not_found():
+    response = client.patch(
+        "/sites/999999999",
+        json={"status": "done"},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Site not found"
