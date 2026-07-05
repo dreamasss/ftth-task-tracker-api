@@ -11,6 +11,14 @@ class SiteStatus(str, Enum):
     reported = "reported"
 
 
+class SiteEventType(str, Enum):
+    note = "note"
+    issue = "issue"
+    status_change = "status_change"
+    measurement = "measurement"
+    customer = "customer"
+
+
 class SiteCreate(BaseModel):
     address: str
     customer_name: str | None = None
@@ -23,3 +31,8 @@ class SiteUpdate(BaseModel):
     customer_name: str | None = None
     status: SiteStatus | None = None
     comment: str | None = None
+
+
+class SiteEventCreate(BaseModel):
+    event_type: SiteEventType = SiteEventType.note
+    message: str

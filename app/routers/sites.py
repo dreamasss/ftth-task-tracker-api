@@ -3,8 +3,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models import Site
-from app.schemas import SiteCreate, SiteUpdate, SiteStatus
+from app.models import Site, SiteEvent
+from app.schemas import SiteCreate, SiteUpdate, SiteStatus, SiteEventCreate
 
 
 router = APIRouter(prefix="/sites", tags=["sites"])
@@ -18,6 +18,16 @@ def site_to_dict(site: Site):
         "status": site.status,
         "comment": site.comment,
         "created_at": site.created_at,
+    }
+
+
+def event_to_dict(event: SiteEvent):
+    return {
+        "id": event.id,
+        "site_id": event.site_id,
+        "event_type": event.event_type,
+        "message": event.message,
+        "created_at": event.created_at,
     }
 
 
@@ -108,3 +118,43 @@ def delete_site(site_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return {"deleted": True, "id": site_id}
+
+
+@router.post("/{site_id}/events")
+def create_site_event(
+    site_id: int,
+    event_in: SiteEventCreate,
+    db: Session = Depends(get_db),
+):
+    site = db.get(Site, site_id)
+
+    if site is None:
+        raise HTTPException(status_code=404, detail="Site not found")
+
+    event = SiteEvent(
+        site_id=site_id,
+        event_type=event_in.event_type.value,
+        message=event_in.message,
+    )
+
+    db.add(event)
+    db.commit()
+    db.refresh(event)
+
+    return event_to_dict(event)
+
+
+@router.get("/{site_id}/events")
+def list_site_events(site_id: int, db: Session = Depends(get_db)):
+    site = db.get(Site, site_id)
+
+    if site is None:
+        raise HTTPException(status_code=404, detail="Site not found")
+
+    events = db.execute(
+        select(SiteEvent)
+        .where(SiteEvent.site_id == site_id)
+        .order_by(SiteEvent.id)
+    ).scalars().all()
+
+    return [event_to_dict(event) for event in events]
