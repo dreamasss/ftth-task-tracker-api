@@ -20,3 +20,11 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=get_engine()
 def db_ping(engine):
     with engine.connect() as conn:
         return conn.execute(text("SELECT version()")).scalar_one()
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
