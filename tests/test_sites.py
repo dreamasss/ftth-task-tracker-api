@@ -136,3 +136,35 @@ def test_delete_site_not_found():
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Site not found"
+
+
+def test_create_site_rejects_invalid_status():
+    response = client.post(
+        "/sites",
+        json={
+            "address": f"Blogas statusas {uuid4()}",
+            "status": "grybas",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_update_site_rejects_invalid_status():
+    create_response = client.post(
+        "/sites",
+        json={
+            "address": f"Validus objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+    assert create_response.status_code == 200
+
+    created = create_response.json()
+
+    update_response = client.patch(
+        f"/sites/{created['id']}",
+        json={"status": "grybas"},
+    )
+
+    assert update_response.status_code == 422
