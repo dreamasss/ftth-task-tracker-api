@@ -89,6 +89,8 @@ def update_site(site_id: int, site_in: SiteUpdate, db: Session = Depends(get_db)
     if site is None:
         raise HTTPException(status_code=404, detail="Site not found")
 
+    old_status = site.status
+
     if site_in.address is not None:
         site.address = site_in.address
 
@@ -96,7 +98,17 @@ def update_site(site_id: int, site_in: SiteUpdate, db: Session = Depends(get_db)
         site.customer_name = site_in.customer_name
 
     if site_in.status is not None:
-        site.status = site_in.status.value
+        new_status = site_in.status.value
+
+        if new_status != old_status:
+            site.status = new_status
+
+            event = SiteEvent(
+                site_id=site.id,
+                event_type="status_change",
+                message=f"Status changed from {old_status} to {new_status}",
+            )
+            db.add(event)
 
     if site_in.comment is not None:
         site.comment = site_in.comment

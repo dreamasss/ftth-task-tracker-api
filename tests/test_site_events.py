@@ -79,3 +79,38 @@ def test_create_site_event_rejects_invalid_event_type():
     )
 
     assert response.status_code == 422
+
+
+def test_status_change_creates_site_event():
+    site = create_test_site()
+
+    update_response = client.patch(
+        f"/sites/{site['id']}",
+        json={"status": "blocked"},
+    )
+
+    assert update_response.status_code == 200
+    assert update_response.json()["status"] == "blocked"
+
+    events_response = client.get(f"/sites/{site['id']}/events")
+    assert events_response.status_code == 200
+
+    events = events_response.json()
+    assert len(events) == 1
+    assert events[0]["event_type"] == "status_change"
+    assert events[0]["message"] == "Status changed from new to blocked"
+
+
+def test_same_status_does_not_create_status_change_event():
+    site = create_test_site()
+
+    update_response = client.patch(
+        f"/sites/{site['id']}",
+        json={"status": "new"},
+    )
+
+    assert update_response.status_code == 200
+
+    events_response = client.get(f"/sites/{site['id']}/events")
+    assert events_response.status_code == 200
+    assert events_response.json() == []
