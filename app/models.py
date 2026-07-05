@@ -3,6 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -13,6 +14,7 @@ class User(Base):
     created_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     tasks: Mapped[list["Task"]] = relationship(back_populates="owner", cascade="all, delete-orphan")
+
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -38,3 +40,17 @@ class Site(Base):
     status: Mapped[str] = mapped_column(String(50), default="new", nullable=False)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    events: Mapped[list["SiteEvent"]] = relationship(back_populates="site", cascade="all, delete-orphan")
+
+
+class SiteEvent(Base):
+    __tablename__ = "site_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    site_id: Mapped[int] = mapped_column(ForeignKey("sites.id", ondelete="CASCADE"), index=True, nullable=False)
+    event_type: Mapped[str] = mapped_column(String(50), default="note", nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    site: Mapped["Site"] = relationship(back_populates="events")
