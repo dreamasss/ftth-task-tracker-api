@@ -1,5 +1,5 @@
 from fastapi import Depends, FastAPI, HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db import get_engine, db_ping, get_db
@@ -58,6 +58,20 @@ def list_sites(status: SiteStatus | None = None, db: Session = Depends(get_db)):
 
     sites = db.execute(query.order_by(Site.id)).scalars().all()
     return [site_to_dict(site) for site in sites]
+
+
+@app.get("/sites/stats")
+def get_sites_stats(db: Session = Depends(get_db)):
+    stats = {status.value: 0 for status in SiteStatus}
+
+    rows = db.execute(
+        select(Site.status, func.count(Site.id)).group_by(Site.status)
+    ).all()
+
+    for status, count in rows:
+        stats[status] = count
+
+    return stats
 
 
 @app.get("/sites/{site_id}")

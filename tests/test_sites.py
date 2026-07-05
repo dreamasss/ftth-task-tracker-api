@@ -209,3 +209,40 @@ def test_list_sites_rejects_invalid_status_filter():
     response = client.get("/sites?status=grybas")
 
     assert response.status_code == 422
+
+
+def test_get_sites_stats():
+    client.post(
+        "/sites",
+        json={
+            "address": f"Blocked stats {uuid4()}",
+            "status": "blocked",
+        },
+    )
+
+    client.post(
+        "/sites",
+        json={
+            "address": f"Done stats {uuid4()}",
+            "status": "done",
+        },
+    )
+
+    client.post(
+        "/sites",
+        json={
+            "address": f"Done stats 2 {uuid4()}",
+            "status": "done",
+        },
+    )
+
+    response = client.get("/sites/stats")
+
+    assert response.status_code == 200
+
+    stats = response.json()
+    assert stats["new"] == 0
+    assert stats["in_progress"] == 0
+    assert stats["blocked"] == 1
+    assert stats["done"] == 2
+    assert stats["reported"] == 0
