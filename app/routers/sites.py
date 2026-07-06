@@ -74,8 +74,9 @@ def list_sites(
     sort_by: Literal["id", "address", "status", "created_at"] = Query(default="id"),
     sort_order: Literal["asc", "desc"] = Query(default="asc"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    query = select(Site)
+    query = select(Site).where(Site.user_id == current_user.id)
 
     if status is not None:
         query = query.where(Site.status == status.value)

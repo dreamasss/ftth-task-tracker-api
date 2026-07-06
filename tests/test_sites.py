@@ -35,7 +35,7 @@ def test_create_and_list_sites(auth_headers):
     assert "id" in created
     assert "created_at" in created
 
-    list_response = client.get("/sites")
+    list_response = client.get("/sites", headers=auth_headers)
 
     assert list_response.status_code == 200
 
@@ -65,7 +65,7 @@ def test_get_site_by_id(auth_headers):
     assert site["status"] == "in_progress"
 
 
-def test_get_site_not_found():
+def test_get_site_not_found(auth_headers):
     response = client.get("/sites/999999999")
 
     assert response.status_code == 404
@@ -210,7 +210,7 @@ def test_list_sites_filters_by_status(auth_headers):
         },
     )
 
-    response = client.get("/sites?status=blocked")
+    response = client.get("/sites?status=blocked", headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -220,8 +220,8 @@ def test_list_sites_filters_by_status(auth_headers):
     assert "Blocked objektas" in sites[0]["address"]
 
 
-def test_list_sites_rejects_invalid_status_filter():
-    response = client.get("/sites?status=grybas")
+def test_list_sites_rejects_invalid_status_filter(auth_headers):
+    response = client.get("/sites?status=grybas", headers=auth_headers)
 
     assert response.status_code == 422
 
@@ -287,7 +287,7 @@ def test_list_sites_searches_by_address(auth_headers):
         },
     )
 
-    response = client.get("/sites?search=Vilnius")
+    response = client.get("/sites?search=Vilnius", headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -317,7 +317,7 @@ def test_list_sites_searches_by_customer_name(auth_headers):
         },
     )
 
-    response = client.get("/sites?search=Fiber")
+    response = client.get("/sites?search=Fiber", headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -337,7 +337,7 @@ def test_list_sites_uses_limit_and_offset(auth_headers):
             },
         )
 
-    response = client.get("/sites?limit=1&offset=1")
+    response = client.get("/sites?limit=1&offset=1", headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -345,26 +345,26 @@ def test_list_sites_uses_limit_and_offset(auth_headers):
     assert len(sites) == 1
 
 
-def test_list_sites_rejects_limit_below_minimum():
-    response = client.get("/sites?limit=0")
+def test_list_sites_rejects_limit_below_minimum(auth_headers):
+    response = client.get("/sites?limit=0", headers=auth_headers)
 
     assert response.status_code == 422
 
 
-def test_list_sites_rejects_limit_above_maximum():
-    response = client.get("/sites?limit=101")
+def test_list_sites_rejects_limit_above_maximum(auth_headers):
+    response = client.get("/sites?limit=101", headers=auth_headers)
 
     assert response.status_code == 422
 
 
-def test_list_sites_rejects_negative_offset():
-    response = client.get("/sites?offset=-1")
+def test_list_sites_rejects_negative_offset(auth_headers):
+    response = client.get("/sites?offset=-1", headers=auth_headers)
 
     assert response.status_code == 422
 
 
-def test_list_sites_rejects_empty_search():
-    response = client.get("/sites?search=")
+def test_list_sites_rejects_empty_search(auth_headers):
+    response = client.get("/sites?search=", headers=auth_headers)
 
     assert response.status_code == 422
 
@@ -380,7 +380,7 @@ def test_list_sites_returns_pagination_metadata(auth_headers):
             },
         )
 
-    response = client.get("/sites?limit=1&offset=0")
+    response = client.get("/sites?limit=1&offset=0", headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -409,7 +409,7 @@ def test_list_sites_sorts_by_address_ascending(auth_headers):
         },
     )
 
-    response = client.get("/sites?sort_by=address&sort_order=asc")
+    response = client.get("/sites?sort_by=address&sort_order=asc", headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -435,7 +435,7 @@ def test_list_sites_sorts_by_address_descending(auth_headers):
         },
     )
 
-    response = client.get("/sites?sort_by=address&sort_order=desc")
+    response = client.get("/sites?sort_by=address&sort_order=desc", headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -443,14 +443,14 @@ def test_list_sites_sorts_by_address_descending(auth_headers):
     assert sites[0]["address"].startswith("ZZZ")
 
 
-def test_list_sites_rejects_invalid_sort_by():
-    response = client.get("/sites?sort_by=invalid")
+def test_list_sites_rejects_invalid_sort_by(auth_headers):
+    response = client.get("/sites?sort_by=invalid", headers=auth_headers)
 
     assert response.status_code == 422
 
 
-def test_list_sites_rejects_invalid_sort_order():
-    response = client.get("/sites?sort_order=sideways")
+def test_list_sites_rejects_invalid_sort_order(auth_headers):
+    response = client.get("/sites?sort_order=sideways", headers=auth_headers)
 
     assert response.status_code == 422
 
@@ -751,3 +751,62 @@ def test_create_site_assigns_current_user():
 
     assert response.status_code == 200
     assert response.json()["user_id"] == user_id
+
+
+def make_auth_headers_for_email(email: str):
+    password = "strong-password-123"
+
+    register_response = client.post(
+        "/auth/register",
+        json={
+            "email": email,
+            "password": password,
+        },
+    )
+    assert register_response.status_code == 200
+
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": email,
+            "password": password,
+        },
+    )
+    assert login_response.status_code == 200
+
+    token = login_response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+def test_list_sites_returns_only_current_user_sites():
+    user_a_headers = make_auth_headers_for_email(f"user-a-{uuid4()}@example.com")
+    user_b_headers = make_auth_headers_for_email(f"user-b-{uuid4()}@example.com")
+
+    user_a_response = client.post(
+        "/sites",
+        headers=user_a_headers,
+        json={
+            "address": f"User A objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+    assert user_a_response.status_code == 200
+
+    user_b_response = client.post(
+        "/sites",
+        headers=user_b_headers,
+        json={
+            "address": f"User B objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+    assert user_b_response.status_code == 200
+
+    user_a_list_response = client.get("/sites", headers=user_a_headers)
+    assert user_a_list_response.status_code == 200
+
+    items = user_a_list_response.json()["items"]
+    addresses = [item["address"] for item in items]
+
+    assert user_a_response.json()["address"] in addresses
+    assert user_b_response.json()["address"] not in addresses
