@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -33,6 +33,12 @@ class Task(Base):
 
 class Site(Base):
     __tablename__ = "sites"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('new', 'in_progress', 'blocked', 'done', 'reported')",
+            name="ck_sites_status_valid",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     address: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -52,6 +58,12 @@ class Site(Base):
 
 class SiteEvent(Base):
     __tablename__ = "site_events"
+    __table_args__ = (
+        CheckConstraint(
+            "event_type IN ('note', 'issue', 'status_change')",
+            name="ck_site_events_event_type_valid",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     site_id: Mapped[int] = mapped_column(ForeignKey("sites.id", ondelete="CASCADE"), index=True, nullable=False)
