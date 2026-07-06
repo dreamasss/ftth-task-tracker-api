@@ -6,7 +6,8 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models import Site, SiteEvent
+from app.models import Site, SiteEvent, User
+from app.routers.auth import get_current_user
 from app.schemas import (
     SiteCreate,
     SiteDeleteResponse,
@@ -47,7 +48,7 @@ def event_to_dict(event: SiteEvent):
 
 
 @router.post("", response_model=SiteRead)
-def create_site(site_in: SiteCreate, db: Session = Depends(get_db)):
+def create_site(site_in: SiteCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     site = Site(
         address=site_in.address,
         customer_name=site_in.customer_name,
@@ -130,7 +131,9 @@ def get_site(site_id: int, db: Session = Depends(get_db)):
 
 
 @router.patch("/{site_id}", response_model=SiteRead)
-def update_site(site_id: int, site_in: SiteUpdate, db: Session = Depends(get_db)):
+def update_site(
+    site_id: int, site_in: SiteUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+):
     site = db.get(Site, site_id)
 
     if site is None:
@@ -172,7 +175,7 @@ def update_site(site_id: int, site_in: SiteUpdate, db: Session = Depends(get_db)
 
 
 @router.delete("/{site_id}", response_model=SiteDeleteResponse)
-def delete_site(site_id: int, db: Session = Depends(get_db)):
+def delete_site(site_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     site = db.get(Site, site_id)
 
     if site is None:
@@ -189,6 +192,7 @@ def create_site_event(
     site_id: int,
     event_in: SiteEventCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     site = db.get(Site, site_id)
 

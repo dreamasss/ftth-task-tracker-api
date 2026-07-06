@@ -13,7 +13,7 @@ def get_site_items(response):
     return data["items"]
 
 
-def test_create_and_list_sites():
+def test_create_and_list_sites(auth_headers):
     address = f"Rokiskis, Testo g. {uuid4()}"
 
     payload = {
@@ -23,7 +23,7 @@ def test_create_and_list_sites():
         "comment": "Testinis objektas",
     }
 
-    create_response = client.post("/sites", json=payload)
+    create_response = client.post("/sites", json=payload, headers=auth_headers)
 
     assert create_response.status_code == 200
 
@@ -43,7 +43,7 @@ def test_create_and_list_sites():
     assert any(site["address"] == address for site in sites)
 
 
-def test_get_site_by_id():
+def test_get_site_by_id(auth_headers):
     payload = {
         "address": f"Panevezys, Objekto g. {uuid4()}",
         "customer_name": "Vienas klientas",
@@ -51,7 +51,7 @@ def test_get_site_by_id():
         "comment": "Objekto perziura",
     }
 
-    create_response = client.post("/sites", json=payload)
+    create_response = client.post("/sites", json=payload, headers=auth_headers)
     assert create_response.status_code == 200
 
     created = create_response.json()
@@ -72,9 +72,10 @@ def test_get_site_not_found():
     assert response.json()["detail"] == "Site not found"
 
 
-def test_update_site():
+def test_update_site(auth_headers):
     create_response = client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Vilnius, Darbo g. {uuid4()}",
             "customer_name": "Pradinis klientas",
@@ -88,6 +89,7 @@ def test_update_site():
 
     update_response = client.patch(
         f"/sites/{created['id']}",
+        headers=auth_headers,
         json={
             "status": "blocked",
             "comment": "Truksta leidimo",
@@ -103,9 +105,10 @@ def test_update_site():
     assert updated["comment"] == "Truksta leidimo"
 
 
-def test_update_site_not_found():
+def test_update_site_not_found(auth_headers):
     response = client.patch(
         "/sites/999999999",
+        headers=auth_headers,
         json={"status": "done"},
     )
 
@@ -113,9 +116,10 @@ def test_update_site_not_found():
     assert response.json()["detail"] == "Site not found"
 
 
-def test_delete_site():
+def test_delete_site(auth_headers):
     create_response = client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Kaunas, Trinimo g. {uuid4()}",
             "customer_name": "Trinamas klientas",
@@ -127,7 +131,7 @@ def test_delete_site():
 
     created = create_response.json()
 
-    delete_response = client.delete(f"/sites/{created['id']}")
+    delete_response = client.delete(f"/sites/{created['id']}", headers=auth_headers)
 
     assert delete_response.status_code == 200
     assert delete_response.json() == {"deleted": True, "id": created["id"]}
@@ -136,16 +140,17 @@ def test_delete_site():
     assert get_response.status_code == 404
 
 
-def test_delete_site_not_found():
-    response = client.delete("/sites/999999999")
+def test_delete_site_not_found(auth_headers):
+    response = client.delete("/sites/999999999", headers=auth_headers)
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Site not found"
 
 
-def test_create_site_rejects_invalid_status():
+def test_create_site_rejects_invalid_status(auth_headers):
     response = client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Blogas statusas {uuid4()}",
             "status": "grybas",
@@ -155,9 +160,10 @@ def test_create_site_rejects_invalid_status():
     assert response.status_code == 422
 
 
-def test_update_site_rejects_invalid_status():
+def test_update_site_rejects_invalid_status(auth_headers):
     create_response = client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Validus objektas {uuid4()}",
             "status": "new",
@@ -169,15 +175,17 @@ def test_update_site_rejects_invalid_status():
 
     update_response = client.patch(
         f"/sites/{created['id']}",
+        headers=auth_headers,
         json={"status": "grybas"},
     )
 
     assert update_response.status_code == 422
 
 
-def test_list_sites_filters_by_status():
+def test_list_sites_filters_by_status(auth_headers):
     client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Blocked objektas {uuid4()}",
             "status": "blocked",
@@ -186,6 +194,7 @@ def test_list_sites_filters_by_status():
 
     client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Done objektas {uuid4()}",
             "status": "done",
@@ -194,6 +203,7 @@ def test_list_sites_filters_by_status():
 
     client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Progress objektas {uuid4()}",
             "status": "in_progress",
@@ -216,9 +226,10 @@ def test_list_sites_rejects_invalid_status_filter():
     assert response.status_code == 422
 
 
-def test_get_sites_stats():
+def test_get_sites_stats(auth_headers):
     client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Blocked stats {uuid4()}",
             "status": "blocked",
@@ -227,6 +238,7 @@ def test_get_sites_stats():
 
     client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Done stats {uuid4()}",
             "status": "done",
@@ -235,6 +247,7 @@ def test_get_sites_stats():
 
     client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Done stats 2 {uuid4()}",
             "status": "done",
@@ -253,9 +266,10 @@ def test_get_sites_stats():
     assert stats["reported"] == 0
 
 
-def test_list_sites_searches_by_address():
+def test_list_sites_searches_by_address(auth_headers):
     client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Vilnius Paieskos g. {uuid4()}",
             "customer_name": "Klientas A",
@@ -265,6 +279,7 @@ def test_list_sites_searches_by_address():
 
     client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Kaunas Kita g. {uuid4()}",
             "customer_name": "Klientas B",
@@ -281,9 +296,10 @@ def test_list_sites_searches_by_address():
     assert "Vilnius" in sites[0]["address"]
 
 
-def test_list_sites_searches_by_customer_name():
+def test_list_sites_searches_by_customer_name(auth_headers):
     client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Adresas {uuid4()}",
             "customer_name": "Jonas Fiber",
@@ -293,6 +309,7 @@ def test_list_sites_searches_by_customer_name():
 
     client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Adresas {uuid4()}",
             "customer_name": "Petras Kabelis",
@@ -309,10 +326,11 @@ def test_list_sites_searches_by_customer_name():
     assert sites[0]["customer_name"] == "Jonas Fiber"
 
 
-def test_list_sites_uses_limit_and_offset():
+def test_list_sites_uses_limit_and_offset(auth_headers):
     for index in range(3):
         client.post(
             "/sites",
+            headers=auth_headers,
             json={
                 "address": f"Pagination objektas {index} {uuid4()}",
                 "status": "new",
@@ -351,10 +369,11 @@ def test_list_sites_rejects_empty_search():
     assert response.status_code == 422
 
 
-def test_list_sites_returns_pagination_metadata():
+def test_list_sites_returns_pagination_metadata(auth_headers):
     for index in range(2):
         client.post(
             "/sites",
+            headers=auth_headers,
             json={
                 "address": f"Metadata objektas {index} {uuid4()}",
                 "status": "new",
@@ -372,9 +391,10 @@ def test_list_sites_returns_pagination_metadata():
     assert len(data["items"]) == 1
 
 
-def test_list_sites_sorts_by_address_ascending():
+def test_list_sites_sorts_by_address_ascending(auth_headers):
     client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"ZZZ sort objektas {uuid4()}",
             "status": "new",
@@ -382,6 +402,7 @@ def test_list_sites_sorts_by_address_ascending():
     )
     client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"AAA sort objektas {uuid4()}",
             "status": "new",
@@ -396,9 +417,10 @@ def test_list_sites_sorts_by_address_ascending():
     assert sites[0]["address"].startswith("AAA")
 
 
-def test_list_sites_sorts_by_address_descending():
+def test_list_sites_sorts_by_address_descending(auth_headers):
     client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"AAA sort objektas {uuid4()}",
             "status": "new",
@@ -406,6 +428,7 @@ def test_list_sites_sorts_by_address_descending():
     )
     client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"ZZZ sort objektas {uuid4()}",
             "status": "new",
@@ -432,9 +455,10 @@ def test_list_sites_rejects_invalid_sort_order():
     assert response.status_code == 422
 
 
-def test_update_site_changes_updated_at():
+def test_update_site_changes_updated_at(auth_headers):
     create_response = client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Updated at objektas {uuid4()}",
             "status": "new",
@@ -448,6 +472,7 @@ def test_update_site_changes_updated_at():
 
     update_response = client.patch(
         f"/sites/{created_site['id']}",
+        headers=auth_headers,
         json={
             "comment": "Updated comment",
         },
@@ -460,9 +485,10 @@ def test_update_site_changes_updated_at():
     assert updated_site["comment"] == "Updated comment"
 
 
-def test_update_site_rejects_empty_body():
+def test_update_site_rejects_empty_body(auth_headers):
     create_response = client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Empty update objektas {uuid4()}",
             "status": "new",
@@ -475,6 +501,7 @@ def test_update_site_rejects_empty_body():
 
     update_response = client.patch(
         f"/sites/{site['id']}",
+        headers=auth_headers,
         json={},
     )
 
@@ -482,9 +509,10 @@ def test_update_site_rejects_empty_body():
     assert update_response.json()["detail"] == "No fields to update"
 
 
-def test_update_site_can_clear_nullable_fields():
+def test_update_site_can_clear_nullable_fields(auth_headers):
     create_response = client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Nullable objektas {uuid4()}",
             "customer_name": "Laikinas klientas",
@@ -499,6 +527,7 @@ def test_update_site_can_clear_nullable_fields():
 
     update_response = client.patch(
         f"/sites/{site['id']}",
+        headers=auth_headers,
         json={
             "customer_name": None,
             "comment": None,
@@ -512,9 +541,10 @@ def test_update_site_can_clear_nullable_fields():
     assert updated_site["comment"] is None
 
 
-def test_update_site_rejects_null_address():
+def test_update_site_rejects_null_address(auth_headers):
     create_response = client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Null address objektas {uuid4()}",
             "status": "new",
@@ -527,6 +557,7 @@ def test_update_site_rejects_null_address():
 
     update_response = client.patch(
         f"/sites/{site['id']}",
+        headers=auth_headers,
         json={
             "address": None,
         },
@@ -535,9 +566,10 @@ def test_update_site_rejects_null_address():
     assert update_response.status_code == 422
 
 
-def test_update_site_rejects_null_status():
+def test_update_site_rejects_null_status(auth_headers):
     create_response = client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Null status objektas {uuid4()}",
             "status": "new",
@@ -550,6 +582,7 @@ def test_update_site_rejects_null_status():
 
     update_response = client.patch(
         f"/sites/{site['id']}",
+        headers=auth_headers,
         json={
             "status": None,
         },
@@ -558,9 +591,10 @@ def test_update_site_rejects_null_status():
     assert update_response.status_code == 422
 
 
-def test_create_site_rejects_empty_address():
+def test_create_site_rejects_empty_address(auth_headers):
     response = client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": "",
             "status": "new",
@@ -570,9 +604,10 @@ def test_create_site_rejects_empty_address():
     assert response.status_code == 422
 
 
-def test_create_site_rejects_empty_customer_name():
+def test_create_site_rejects_empty_customer_name(auth_headers):
     response = client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Validus adresas {uuid4()}",
             "customer_name": "",
@@ -583,9 +618,10 @@ def test_create_site_rejects_empty_customer_name():
     assert response.status_code == 422
 
 
-def test_update_site_rejects_empty_comment():
+def test_update_site_rejects_empty_comment(auth_headers):
     create_response = client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Empty comment objektas {uuid4()}",
             "status": "new",
@@ -598,6 +634,7 @@ def test_update_site_rejects_empty_comment():
 
     update_response = client.patch(
         f"/sites/{site['id']}",
+        headers=auth_headers,
         json={
             "comment": "",
         },
@@ -606,9 +643,10 @@ def test_update_site_rejects_empty_comment():
     assert update_response.status_code == 422
 
 
-def test_create_site_rejects_whitespace_only_address():
+def test_create_site_rejects_whitespace_only_address(auth_headers):
     response = client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": "     ",
             "status": "new",
@@ -618,9 +656,10 @@ def test_create_site_rejects_whitespace_only_address():
     assert response.status_code == 422
 
 
-def test_create_site_strips_text_fields():
+def test_create_site_strips_text_fields(auth_headers):
     response = client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": "   Strip test address   ",
             "customer_name": "   Strip klientas   ",
@@ -637,9 +676,10 @@ def test_create_site_strips_text_fields():
     assert site["comment"] == "Strip komentaras"
 
 
-def test_update_site_strips_text_fields():
+def test_update_site_strips_text_fields(auth_headers):
     create_response = client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Strip update objektas {uuid4()}",
             "status": "new",
@@ -652,6 +692,7 @@ def test_update_site_strips_text_fields():
 
     update_response = client.patch(
         f"/sites/{site['id']}",
+        headers=auth_headers,
         json={
             "comment": "   Naujas komentaras   ",
         },
@@ -659,3 +700,15 @@ def test_update_site_strips_text_fields():
 
     assert update_response.status_code == 200
     assert update_response.json()["comment"] == "Naujas komentaras"
+
+
+def test_create_site_requires_authentication(auth_headers):
+    response = client.post(
+        "/sites",
+        json={
+            "address": f"Unauthorized create {uuid4()}",
+            "status": "new",
+        },
+    )
+
+    assert response.status_code == 401

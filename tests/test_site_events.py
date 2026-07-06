@@ -13,9 +13,10 @@ def get_event_items(response):
     return data["items"]
 
 
-def create_test_site():
+def create_test_site(auth_headers):
     response = client.post(
         "/sites",
+        headers=auth_headers,
         json={
             "address": f"Event test objektas {uuid4()}",
             "status": "new",
@@ -25,11 +26,12 @@ def create_test_site():
     return response.json()
 
 
-def test_create_and_list_site_events():
-    site = create_test_site()
+def test_create_and_list_site_events(auth_headers):
+    site = create_test_site(auth_headers)
 
     create_response = client.post(
         f"/sites/{site['id']}/events",
+        headers=auth_headers,
         json={
             "event_type": "issue",
             "message": "Klientas neatsiliepia",
@@ -52,9 +54,10 @@ def test_create_and_list_site_events():
     assert events[0]["message"] == "Klientas neatsiliepia"
 
 
-def test_create_site_event_site_not_found():
+def test_create_site_event_site_not_found(auth_headers):
     response = client.post(
         "/sites/999999999/events",
+        headers=auth_headers,
         json={
             "event_type": "note",
             "message": "Nera tokio objekto",
@@ -72,11 +75,12 @@ def test_list_site_events_site_not_found():
     assert response.json()["detail"] == "Site not found"
 
 
-def test_create_site_event_rejects_invalid_event_type():
-    site = create_test_site()
+def test_create_site_event_rejects_invalid_event_type(auth_headers):
+    site = create_test_site(auth_headers)
 
     response = client.post(
         f"/sites/{site['id']}/events",
+        headers=auth_headers,
         json={
             "event_type": "grybas",
             "message": "Blogas event type",
@@ -86,11 +90,12 @@ def test_create_site_event_rejects_invalid_event_type():
     assert response.status_code == 422
 
 
-def test_status_change_creates_site_event():
-    site = create_test_site()
+def test_status_change_creates_site_event(auth_headers):
+    site = create_test_site(auth_headers)
 
     update_response = client.patch(
         f"/sites/{site['id']}",
+        headers=auth_headers,
         json={"status": "blocked"},
     )
 
@@ -106,11 +111,12 @@ def test_status_change_creates_site_event():
     assert events[0]["message"] == "Status changed from new to blocked"
 
 
-def test_same_status_does_not_create_status_change_event():
-    site = create_test_site()
+def test_same_status_does_not_create_status_change_event(auth_headers):
+    site = create_test_site(auth_headers)
 
     update_response = client.patch(
         f"/sites/{site['id']}",
+        headers=auth_headers,
         json={"status": "new"},
     )
 
@@ -121,11 +127,12 @@ def test_same_status_does_not_create_status_change_event():
     assert get_event_items(events_response) == []
 
 
-def test_create_site_event_rejects_empty_message():
-    site = create_test_site()
+def test_create_site_event_rejects_empty_message(auth_headers):
+    site = create_test_site(auth_headers)
 
     response = client.post(
         f"/sites/{site['id']}/events",
+        headers=auth_headers,
         json={
             "event_type": "note",
             "message": "",
@@ -135,11 +142,12 @@ def test_create_site_event_rejects_empty_message():
     assert response.status_code == 422
 
 
-def test_create_site_event_rejects_whitespace_only_message():
-    site = create_test_site()
+def test_create_site_event_rejects_whitespace_only_message(auth_headers):
+    site = create_test_site(auth_headers)
 
     response = client.post(
         f"/sites/{site['id']}/events",
+        headers=auth_headers,
         json={
             "event_type": "note",
             "message": "     ",
@@ -149,11 +157,12 @@ def test_create_site_event_rejects_whitespace_only_message():
     assert response.status_code == 422
 
 
-def test_create_site_event_strips_message():
-    site = create_test_site()
+def test_create_site_event_strips_message(auth_headers):
+    site = create_test_site(auth_headers)
 
     response = client.post(
         f"/sites/{site['id']}/events",
+        headers=auth_headers,
         json={
             "event_type": "note",
             "message": "   Signal level checked   ",
@@ -164,12 +173,13 @@ def test_create_site_event_strips_message():
     assert response.json()["message"] == "Signal level checked"
 
 
-def test_list_site_events_returns_pagination_metadata():
-    site = create_test_site()
+def test_list_site_events_returns_pagination_metadata(auth_headers):
+    site = create_test_site(auth_headers)
 
     for index in range(2):
         client.post(
             f"/sites/{site['id']}/events",
+            headers=auth_headers,
             json={
                 "event_type": "note",
                 "message": f"Pagination event {index}",
@@ -187,27 +197,28 @@ def test_list_site_events_returns_pagination_metadata():
     assert len(data["items"]) == 1
 
 
-def test_list_site_events_rejects_invalid_limit():
-    site = create_test_site()
+def test_list_site_events_rejects_invalid_limit(auth_headers):
+    site = create_test_site(auth_headers)
 
     response = client.get(f"/sites/{site['id']}/events?limit=0")
 
     assert response.status_code == 422
 
 
-def test_list_site_events_rejects_negative_offset():
-    site = create_test_site()
+def test_list_site_events_rejects_negative_offset(auth_headers):
+    site = create_test_site(auth_headers)
 
     response = client.get(f"/sites/{site['id']}/events?offset=-1")
 
     assert response.status_code == 422
 
 
-def test_list_site_events_filters_by_event_type():
-    site = create_test_site()
+def test_list_site_events_filters_by_event_type(auth_headers):
+    site = create_test_site(auth_headers)
 
     client.post(
         f"/sites/{site['id']}/events",
+        headers=auth_headers,
         json={
             "event_type": "note",
             "message": "Regular note",
@@ -216,6 +227,7 @@ def test_list_site_events_filters_by_event_type():
 
     client.post(
         f"/sites/{site['id']}/events",
+        headers=auth_headers,
         json={
             "event_type": "issue",
             "message": "Something is wrong",
@@ -233,19 +245,20 @@ def test_list_site_events_filters_by_event_type():
     assert data["items"][0]["message"] == "Something is wrong"
 
 
-def test_list_site_events_rejects_invalid_event_type_filter():
-    site = create_test_site()
+def test_list_site_events_rejects_invalid_event_type_filter(auth_headers):
+    site = create_test_site(auth_headers)
 
     response = client.get(f"/sites/{site['id']}/events?event_type=bad_type")
 
     assert response.status_code == 422
 
 
-def test_list_site_events_sorts_descending():
-    site = create_test_site()
+def test_list_site_events_sorts_descending(auth_headers):
+    site = create_test_site(auth_headers)
 
     client.post(
         f"/sites/{site['id']}/events",
+        headers=auth_headers,
         json={
             "event_type": "note",
             "message": "First event",
@@ -254,6 +267,7 @@ def test_list_site_events_sorts_descending():
 
     client.post(
         f"/sites/{site['id']}/events",
+        headers=auth_headers,
         json={
             "event_type": "note",
             "message": "Second event",
@@ -269,20 +283,21 @@ def test_list_site_events_sorts_descending():
     assert events[1]["message"] == "First event"
 
 
-def test_list_site_events_rejects_invalid_sort_order():
-    site = create_test_site()
+def test_list_site_events_rejects_invalid_sort_order(auth_headers):
+    site = create_test_site(auth_headers)
 
     response = client.get(f"/sites/{site['id']}/events?sort_order=sideways")
 
     assert response.status_code == 422
 
 
-def test_create_site_event_updates_site_updated_at():
-    site = create_test_site()
+def test_create_site_event_updates_site_updated_at(auth_headers):
+    site = create_test_site(auth_headers)
     old_updated_at = site["updated_at"]
 
     event_response = client.post(
         f"/sites/{site['id']}/events",
+        headers=auth_headers,
         json={
             "event_type": "note",
             "message": "Updated site timestamp through event",
@@ -296,3 +311,17 @@ def test_create_site_event_updates_site_updated_at():
 
     updated_site = site_response.json()
     assert updated_site["updated_at"] != old_updated_at
+
+
+def test_create_site_event_requires_authentication(auth_headers):
+    site = create_test_site(auth_headers)
+
+    response = client.post(
+        f"/sites/{site['id']}/events",
+        json={
+            "event_type": "note",
+            "message": "Unauthorized event",
+        },
+    )
+
+    assert response.status_code == 401

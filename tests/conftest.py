@@ -53,3 +53,38 @@ def clean_tables():
         db.execute(delete(Task))
         db.execute(delete(User))
         db.commit()
+
+
+@pytest.fixture
+def auth_headers():
+    from uuid import uuid4
+
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    client = TestClient(app)
+    email = f"test-user-{uuid4()}@example.com"
+    password = "strong-password-123"
+
+    register_response = client.post(
+        "/auth/register",
+        json={
+            "email": email,
+            "password": password,
+        },
+    )
+    assert register_response.status_code == 200
+
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": email,
+            "password": password,
+        },
+    )
+    assert login_response.status_code == 200
+
+    token = login_response.json()["access_token"]
+
+    return {"Authorization": f"Bearer {token}"}
