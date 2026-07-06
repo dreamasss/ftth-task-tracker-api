@@ -218,3 +218,39 @@ curl http://localhost:8000/health/db
 ```
 
 The Docker image also defines a container healthcheck that calls this endpoint.
+
+## List site events with pagination
+
+The `GET /sites/{site_id}/events` endpoint returns site events with pagination metadata.
+
+Example request:
+
+```bash
+curl "http://localhost:8000/sites/1/events?limit=10&offset=0"
+```
+
+Example response:
+
+```json
+{
+  "total": 1,
+  "limit": 10,
+  "offset": 0,
+  "items": [
+    {
+      "id": 1,
+      "site_id": 1,
+      "event_type": "note",
+      "message": "Signal level checked",
+      "created_at": "2026-07-06T12:30:00Z"
+    }
+  ]
+}
+```
+
+Query parameters:
+
+| Parameter | Description |
+|---|---|
+| `limit` | Number of events to return, from 1 to 100 |
+| `offset` | Number of events to skip, minimum 0 |
