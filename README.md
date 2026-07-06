@@ -324,3 +324,20 @@ SECRET_KEY
 ```
 
 `SECRET_KEY` is used to sign access tokens. Change it in real deployments.
+
+### Protected site endpoints
+
+Most site endpoints require a Bearer token and only return data owned by the current user:
+
+```text
+GET /sites
+GET /sites/stats
+GET /sites/{site_id}
+POST /sites
+PATCH /sites/{site_id}
+DELETE /sites/{site_id}
+GET /sites/{site_id}/events
+POST /sites/{site_id}/events
+
+Users can only access their own sites and site events. Requests for another user's site return 404.
+
