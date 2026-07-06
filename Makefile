@@ -51,3 +51,6 @@ migrate-test-roundtrip:
 	docker compose exec api sh -lc 'DATABASE_URL="$$TEST_DATABASE_URL" alembic upgrade head'
 	docker compose exec api sh -lc 'DATABASE_URL="$$TEST_DATABASE_URL" alembic downgrade base'
 	docker compose exec api sh -lc 'DATABASE_URL="$$TEST_DATABASE_URL" alembic upgrade head'
+
+smoke:
+	python scripts/smoke_test.py
