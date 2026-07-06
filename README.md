@@ -86,3 +86,20 @@ Add a site event:
 curl -X POST http://localhost:8000/sites/1/events \
   -H "Content-Type: application/json" \
   -d '{"event_type":"issue","message":"Customer did not answer"}'
+
+## API documentation
+
+FastAPI automatically exposes API documentation at:
+
+http://localhost:8000/docs
+
+The API uses explicit Pydantic response schemas for sites, site events, and delete responses.
+
+## Database setup
+
+Docker Compose runs PostgreSQL with two databases:
+
+- task_tracker - development/demo database
+- task_tracker_test - test database used by pytest
+
+Tests use TEST_DATABASE_URL so they do not delete development/demo data.
