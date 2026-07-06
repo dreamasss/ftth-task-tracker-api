@@ -410,3 +410,11 @@ Smoke test against the deployed API:
 ```bash
 BASE_URL=https://ftth-task-tracker-api.onrender.com make smoke
 ```
+
+## Known limitations
+
+- The Render free instance may sleep after inactivity, so the first request can be slower.
+- There is no frontend/admin UI yet; the API is tested through Swagger docs and smoke tests.
+- Access tokens expire, but refresh tokens are not implemented yet.
+- There is no role-based admin system yet.
+- This is a portfolio/demo project, not a production SaaS service.
