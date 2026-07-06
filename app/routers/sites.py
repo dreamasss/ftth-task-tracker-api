@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
@@ -57,14 +57,11 @@ def create_site(site_in: SiteCreate, db: Session = Depends(get_db)):
 @router.get("", response_model=list[SiteRead])
 def list_sites(
     status: SiteStatus | None = None,
-    search: str | None = None,
-    limit: int = 50,
-    offset: int = 0,
+    search: str | None = Query(default=None, min_length=1, max_length=100),
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
 ):
-    limit = min(limit, 100)
-    offset = max(offset, 0)
-
     query = select(Site)
 
     if status is not None:

@@ -319,3 +319,27 @@ def test_list_sites_uses_limit_and_offset():
 
     sites = response.json()
     assert len(sites) == 1
+
+
+def test_list_sites_rejects_limit_below_minimum():
+    response = client.get("/sites?limit=0")
+
+    assert response.status_code == 422
+
+
+def test_list_sites_rejects_limit_above_maximum():
+    response = client.get("/sites?limit=101")
+
+    assert response.status_code == 422
+
+
+def test_list_sites_rejects_negative_offset():
+    response = client.get("/sites?offset=-1")
+
+    assert response.status_code == 422
+
+
+def test_list_sites_rejects_empty_search():
+    response = client.get("/sites?search=")
+
+    assert response.status_code == 422
