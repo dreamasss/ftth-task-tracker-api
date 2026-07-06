@@ -252,5 +252,6 @@ Query parameters:
 
 | Parameter | Description |
 |---|---|
+| `event_type` | Optional event type filter: `note`, `issue`, `status_change` |
 | `limit` | Number of events to return, from 1 to 100 |
 | `offset` | Number of events to skip, minimum 0 |

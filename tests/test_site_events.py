@@ -201,3 +201,41 @@ def test_list_site_events_rejects_negative_offset():
     response = client.get(f"/sites/{site['id']}/events?offset=-1")
 
     assert response.status_code == 422
+
+
+def test_list_site_events_filters_by_event_type():
+    site = create_test_site()
+
+    client.post(
+        f"/sites/{site['id']}/events",
+        json={
+            "event_type": "note",
+            "message": "Regular note",
+        },
+    )
+
+    client.post(
+        f"/sites/{site['id']}/events",
+        json={
+            "event_type": "issue",
+            "message": "Something is wrong",
+        },
+    )
+
+    response = client.get(f"/sites/{site['id']}/events?event_type=issue")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["total"] == 1
+    assert len(data["items"]) == 1
+    assert data["items"][0]["event_type"] == "issue"
+    assert data["items"][0]["message"] == "Something is wrong"
+
+
+def test_list_site_events_rejects_invalid_event_type_filter():
+    site = create_test_site()
+
+    response = client.get(f"/sites/{site['id']}/events?event_type=bad_type")
+
+    assert response.status_code == 422

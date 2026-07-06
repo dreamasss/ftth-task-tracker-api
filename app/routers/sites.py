@@ -12,6 +12,7 @@ from app.schemas import (
     SiteEventCreate,
     SiteEventListResponse,
     SiteEventRead,
+    SiteEventType,
     SiteListResponse,
     SiteRead,
     SiteStatsResponse,
@@ -209,6 +210,7 @@ def create_site_event(
 @router.get("/{site_id}/events", response_model=SiteEventListResponse)
 def list_site_events(
     site_id: int,
+    event_type: SiteEventType | None = None,
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
@@ -219,6 +221,9 @@ def list_site_events(
         raise HTTPException(status_code=404, detail="Site not found")
 
     query = select(SiteEvent).where(SiteEvent.site_id == site_id)
+
+    if event_type is not None:
+        query = query.where(SiteEvent.event_type == event_type.value)
 
     total = db.execute(select(func.count()).select_from(query.subquery())).scalar_one()
 
