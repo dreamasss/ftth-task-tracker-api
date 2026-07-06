@@ -62,6 +62,7 @@ class SiteUpdate(BaseModel):
 
 class SiteRead(BaseModel):
     id: int
+    user_id: int | None = None
     address: str
     customer_name: str | None = None
     status: SiteStatus
