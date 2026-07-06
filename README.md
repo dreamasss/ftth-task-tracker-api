@@ -369,3 +369,13 @@ Use `POST /sites/{site_id}/events` with `Authorization: Bearer <token>`.
 6. Get my site stats
 
 Use `GET /sites/stats` with `Authorization: Bearer <token>`.
+
+## Local development shortcuts
+
+Common commands:
+
+- `make up` — start Docker containers
+- `make test-db` — create the test database if missing
+- `make ci` — run linting, formatting check, and tests
+- `make smoke` — run the API smoke test against the local server
+- `make down` — stop Docker containers without deleting volumes
