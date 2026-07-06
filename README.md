@@ -49,10 +49,6 @@ docker compose up -d --build
 
 docker compose exec api python -m pytest -q
 
-## Health check
-
-curl http://localhost:8000/health/db
-
 ## API examples
 
 Create a site:
