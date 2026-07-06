@@ -20,6 +20,9 @@ jobs:
       - name: Start Docker services
         run: docker compose up -d --build
 
+      - name: Run Ruff
+        run: docker compose exec -T api ruff check .
+
       - name: Create test database
         run: docker compose exec -T db sh -lc 'createdb -U "$POSTGRES_USER" task_tracker_test || true'
 

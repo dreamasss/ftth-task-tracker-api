@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 
-from app.db import get_engine, db_ping
+from app.db import db_ping, get_engine
 from app.routers.sites import router as sites_router
-
 
 app = FastAPI()
 

@@ -14,7 +14,6 @@ from app.schemas import (
     SiteUpdate,
 )
 
-
 router = APIRouter(prefix="/sites", tags=["sites"])
 
 

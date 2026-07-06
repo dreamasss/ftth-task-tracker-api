@@ -115,3 +115,9 @@ Create it from the example file:
     cp .env.example .env
 
 The `.env` file is ignored by Git. Use `.env.example` as the public template.
+
+## Linting
+
+Run Ruff locally:
+
+    docker compose exec api ruff check .
