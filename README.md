@@ -306,3 +306,21 @@ POST /sites/{site_id}/events
 ```
 
 Read endpoints such as GET /sites and GET /sites/{site_id} are public.
+
+## Environment variables
+
+Create a `.env` file based on `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+Required variables:
+
+```text
+DATABASE_URL
+TEST_DATABASE_URL
+SECRET_KEY
+```
+
+`SECRET_KEY` is used to sign access tokens. Change it in real deployments.
