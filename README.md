@@ -346,47 +346,26 @@ Users can only access their own sites and site events. Requests for another user
 
 Full authenticated API flow:
 
-1. Register user:
+1. Register user
 
-```bash
-curl -X POST http://localhost:8000/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"demo@example.com","password":"strong-password-123"}'
+`POST /auth/register` with email and password.
 
-2. Login and save token:
+2. Login and save token
 
-TOKEN=$(curl -s -X POST http://localhost:8000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"demo@example.com","password":"strong-password-123"}' \
-  | python -c 'import sys,json; print(json.load(sys.stdin)["access_token"])')
+`POST /auth/login` returns an `access_token`.
 
-3. Create a site:
+3. Create a site
 
-SITE_ID=$(curl -s -X POST http://localhost:8000/sites \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{"address":"Vilnius, Test g. 1","status":"new","comment":"Created from demo flow"}' \
-  | python -c 'import sys,json; print(json.load(sys.stdin)["id"])')
+Use `POST /sites` with `Authorization: Bearer <token>`.
 
-4. List my sites:
+4. List my sites
 
+Use `GET /sites` with `Authorization: Bearer <token>`.
 
-curl http://localhost:8000/sites \
-  -H "Authorization: Bearer $TOKEN" \
-  | python -m json.tool
+5. Add a site event
 
-5. List my sites:
+Use `POST /sites/{site_id}/events` with `Authorization: Bearer <token>`.
 
-curl -X POST http://localhost:8000/sites/$SITE_ID/events \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{"event_type":"note","message":"Customer router installed"}' \
-  | python -m json.tool
+6. Get my site stats
 
-6. Get my site stats:
-
-curl http://localhost:8000/sites/stats \
-  -H "Authorization: Bearer $TOKEN" \
-  | python -m json.tool
-
-
+Use `GET /sites/stats` with `Authorization: Bearer <token>`.
