@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 
 from pydantic import BaseModel
@@ -33,6 +34,28 @@ class SiteUpdate(BaseModel):
     comment: str | None = None
 
 
+class SiteRead(BaseModel):
+    id: int
+    address: str
+    customer_name: str | None = None
+    status: SiteStatus
+    comment: str | None = None
+    created_at: datetime
+
+
+class SiteDeleteResponse(BaseModel):
+    deleted: bool
+    id: int
+
+
 class SiteEventCreate(BaseModel):
     event_type: SiteEventType = SiteEventType.note
     message: str
+
+
+class SiteEventRead(BaseModel):
+    id: int
+    site_id: int
+    event_type: SiteEventType
+    message: str
+    created_at: datetime

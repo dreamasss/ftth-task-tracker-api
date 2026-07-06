@@ -4,7 +4,15 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.models import Site, SiteEvent
-from app.schemas import SiteCreate, SiteUpdate, SiteStatus, SiteEventCreate
+from app.schemas import (
+    SiteCreate,
+    SiteDeleteResponse,
+    SiteEventCreate,
+    SiteEventRead,
+    SiteRead,
+    SiteStatus,
+    SiteUpdate,
+)
 
 
 router = APIRouter(prefix="/sites", tags=["sites"])
@@ -31,7 +39,7 @@ def event_to_dict(event: SiteEvent):
     }
 
 
-@router.post("")
+@router.post("", response_model=SiteRead)
 def create_site(site_in: SiteCreate, db: Session = Depends(get_db)):
     site = Site(
         address=site_in.address,
@@ -47,7 +55,7 @@ def create_site(site_in: SiteCreate, db: Session = Depends(get_db)):
     return site_to_dict(site)
 
 
-@router.get("")
+@router.get("", response_model=list[SiteRead])
 def list_sites(status: SiteStatus | None = None, db: Session = Depends(get_db)):
     query = select(Site)
 
@@ -58,7 +66,7 @@ def list_sites(status: SiteStatus | None = None, db: Session = Depends(get_db)):
     return [site_to_dict(site) for site in sites]
 
 
-@router.get("/stats")
+@router.get("/stats", response_model=dict[str, int])
 def get_sites_stats(db: Session = Depends(get_db)):
     stats = {status.value: 0 for status in SiteStatus}
 
@@ -72,7 +80,7 @@ def get_sites_stats(db: Session = Depends(get_db)):
     return stats
 
 
-@router.get("/{site_id}")
+@router.get("/{site_id}", response_model=SiteRead)
 def get_site(site_id: int, db: Session = Depends(get_db)):
     site = db.get(Site, site_id)
 
@@ -82,7 +90,7 @@ def get_site(site_id: int, db: Session = Depends(get_db)):
     return site_to_dict(site)
 
 
-@router.patch("/{site_id}")
+@router.patch("/{site_id}", response_model=SiteRead)
 def update_site(site_id: int, site_in: SiteUpdate, db: Session = Depends(get_db)):
     site = db.get(Site, site_id)
 
@@ -119,7 +127,7 @@ def update_site(site_id: int, site_in: SiteUpdate, db: Session = Depends(get_db)
     return site_to_dict(site)
 
 
-@router.delete("/{site_id}")
+@router.delete("/{site_id}", response_model=SiteDeleteResponse)
 def delete_site(site_id: int, db: Session = Depends(get_db)):
     site = db.get(Site, site_id)
 
@@ -132,7 +140,7 @@ def delete_site(site_id: int, db: Session = Depends(get_db)):
     return {"deleted": True, "id": site_id}
 
 
-@router.post("/{site_id}/events")
+@router.post("/{site_id}/events", response_model=SiteEventRead)
 def create_site_event(
     site_id: int,
     event_in: SiteEventCreate,
@@ -156,7 +164,7 @@ def create_site_event(
     return event_to_dict(event)
 
 
-@router.get("/{site_id}/events")
+@router.get("/{site_id}/events", response_model=list[SiteEventRead])
 def list_site_events(site_id: int, db: Session = Depends(get_db)):
     site = db.get(Site, site_id)
 
