@@ -29,7 +29,13 @@ app.include_router(sites_router)
 
 @app.get("/")
 def root():
-    return {"status": "ok"}
+    return {
+        "name": "FTTH Task Tracker API",
+        "version": "1.0.0",
+        "status": "ok",
+        "docs": "/docs",
+        "health": "/health",
+    }
 
 
 @app.get("/health")
