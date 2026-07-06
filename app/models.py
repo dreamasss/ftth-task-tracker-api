@@ -40,6 +40,12 @@ class Site(Base):
     status: Mapped[str] = mapped_column(String(50), default="new", nullable=False)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped["DateTime"] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     events: Mapped[list["SiteEvent"]] = relationship(back_populates="site", cascade="all, delete-orphan")
 

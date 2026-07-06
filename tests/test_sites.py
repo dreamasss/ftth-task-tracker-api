@@ -430,3 +430,31 @@ def test_list_sites_rejects_invalid_sort_order():
     response = client.get("/sites?sort_order=sideways")
 
     assert response.status_code == 422
+
+
+def test_update_site_changes_updated_at():
+    create_response = client.post(
+        "/sites",
+        json={
+            "address": f"Updated at objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+
+    assert create_response.status_code == 200
+
+    created_site = create_response.json()
+    old_updated_at = created_site["updated_at"]
+
+    update_response = client.patch(
+        f"/sites/{created_site['id']}",
+        json={
+            "comment": "Updated comment",
+        },
+    )
+
+    assert update_response.status_code == 200
+
+    updated_site = update_response.json()
+    assert updated_site["updated_at"] >= old_updated_at
+    assert updated_site["comment"] == "Updated comment"

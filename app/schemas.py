@@ -41,6 +41,7 @@ class SiteRead(BaseModel):
     status: SiteStatus
     comment: str | None = None
     created_at: datetime
+    updated_at: datetime
 
 
 class SiteListResponse(BaseModel):

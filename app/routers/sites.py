@@ -29,6 +29,7 @@ def site_to_dict(site: Site):
         "status": site.status,
         "comment": site.comment,
         "created_at": site.created_at,
+        "updated_at": site.updated_at,
     }
 
 
