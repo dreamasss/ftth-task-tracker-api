@@ -256,3 +256,11 @@ Query parameters:
 | `limit` | Number of events to return, from 1 to 100 |
 | `offset` | Number of events to skip, minimum 0 |
 | `sort_order` | Sort direction by event id: `asc` or `desc` |
+
+Run a full test migration roundtrip:
+
+```bash
+make migrate-test-roundtrip
+```
+
+This command resets the test database, runs Alembic migrations up to `head`, downgrades back to `base`, and upgrades to `head` again. It is also checked in CI.
