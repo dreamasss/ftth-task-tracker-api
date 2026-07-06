@@ -865,3 +865,51 @@ def test_sites_stats_counts_only_current_user_sites():
     assert data["total"] == 1
     assert data["blocked"] == 1
     assert data["done"] == 0
+
+
+def test_update_site_hides_other_users_site():
+    user_a_headers = make_auth_headers_for_email(f"patch-owner-a-{uuid4()}@example.com")
+    user_b_headers = make_auth_headers_for_email(f"patch-owner-b-{uuid4()}@example.com")
+
+    create_response = client.post(
+        "/sites",
+        headers=user_a_headers,
+        json={
+            "address": f"Private patch objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+    assert create_response.status_code == 200
+
+    site_id = create_response.json()["id"]
+
+    response = client.patch(
+        f"/sites/{site_id}",
+        headers=user_b_headers,
+        json={
+            "status": "done",
+        },
+    )
+
+    assert response.status_code == 404
+
+
+def test_delete_site_hides_other_users_site():
+    user_a_headers = make_auth_headers_for_email(f"delete-owner-a-{uuid4()}@example.com")
+    user_b_headers = make_auth_headers_for_email(f"delete-owner-b-{uuid4()}@example.com")
+
+    create_response = client.post(
+        "/sites",
+        headers=user_a_headers,
+        json={
+            "address": f"Private delete objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+    assert create_response.status_code == 200
+
+    site_id = create_response.json()["id"]
+
+    response = client.delete(f"/sites/{site_id}", headers=user_b_headers)
+
+    assert response.status_code == 404
