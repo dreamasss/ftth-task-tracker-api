@@ -1,3 +1,5 @@
+[![Tests](https://github.com/dreamasss/ftth-task-tracker-api/actions/workflows/tests.yml/badge.svg)](https://github.com/dreamasss/ftth-task-tracker-api/actions/workflows/tests.yml)
+
 # FTTH Task Tracker API
 
 Small FastAPI + PostgreSQL backend for tracking FTTH/telecom work sites, statuses, and site history events.
