@@ -306,7 +306,7 @@ def test_create_site_event_updates_site_updated_at(auth_headers):
 
     assert event_response.status_code == 200
 
-    site_response = client.get(f"/sites/{site['id']}")
+    site_response = client.get(f"/sites/{site['id']}", headers=auth_headers)
     assert site_response.status_code == 200
 
     updated_site = site_response.json()

@@ -25,6 +25,20 @@ from app.schemas import (
 router = APIRouter(prefix="/sites", tags=["sites"])
 
 
+def get_user_site_or_404(db: Session, site_id: int, user_id: int) -> Site:
+    site = db.execute(
+        select(Site).where(
+            Site.id == site_id,
+            Site.user_id == user_id,
+        )
+    ).scalar_one_or_none()
+
+    if site is None:
+        raise HTTPException(status_code=404, detail="Site not found")
+
+    return site
+
+
 def site_to_dict(site: Site):
     return {
         "id": site.id,
@@ -124,11 +138,8 @@ def get_sites_stats(db: Session = Depends(get_db)):
 
 
 @router.get("/{site_id}", response_model=SiteRead)
-def get_site(site_id: int, db: Session = Depends(get_db)):
-    site = db.get(Site, site_id)
-
-    if site is None:
-        raise HTTPException(status_code=404, detail="Site not found")
+def get_site(site_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    site = get_user_site_or_404(db, site_id, current_user.id)
 
     return site_to_dict(site)
 
@@ -137,10 +148,7 @@ def get_site(site_id: int, db: Session = Depends(get_db)):
 def update_site(
     site_id: int, site_in: SiteUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
-    site = db.get(Site, site_id)
-
-    if site is None:
-        raise HTTPException(status_code=404, detail="Site not found")
+    site = get_user_site_or_404(db, site_id, current_user.id)
 
     old_status = site.status
 
@@ -179,10 +187,7 @@ def update_site(
 
 @router.delete("/{site_id}", response_model=SiteDeleteResponse)
 def delete_site(site_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    site = db.get(Site, site_id)
-
-    if site is None:
-        raise HTTPException(status_code=404, detail="Site not found")
+    site = get_user_site_or_404(db, site_id, current_user.id)
 
     db.delete(site)
     db.commit()

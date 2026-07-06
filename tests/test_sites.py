@@ -56,7 +56,7 @@ def test_get_site_by_id(auth_headers):
 
     created = create_response.json()
 
-    get_response = client.get(f"/sites/{created['id']}")
+    get_response = client.get(f"/sites/{created['id']}", headers=auth_headers)
     assert get_response.status_code == 200
 
     site = get_response.json()
@@ -66,7 +66,7 @@ def test_get_site_by_id(auth_headers):
 
 
 def test_get_site_not_found(auth_headers):
-    response = client.get("/sites/999999999")
+    response = client.get("/sites/999999999", headers=auth_headers)
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Site not found"
@@ -136,7 +136,7 @@ def test_delete_site(auth_headers):
     assert delete_response.status_code == 200
     assert delete_response.json() == {"deleted": True, "id": created["id"]}
 
-    get_response = client.get(f"/sites/{created['id']}")
+    get_response = client.get(f"/sites/{created['id']}", headers=auth_headers)
     assert get_response.status_code == 404
 
 
@@ -810,3 +810,24 @@ def test_list_sites_returns_only_current_user_sites():
 
     assert user_a_response.json()["address"] in addresses
     assert user_b_response.json()["address"] not in addresses
+
+
+def test_get_site_hides_other_users_site():
+    user_a_headers = make_auth_headers_for_email(f"owner-a-{uuid4()}@example.com")
+    user_b_headers = make_auth_headers_for_email(f"owner-b-{uuid4()}@example.com")
+
+    create_response = client.post(
+        "/sites",
+        headers=user_a_headers,
+        json={
+            "address": f"Private objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+    assert create_response.status_code == 200
+
+    site_id = create_response.json()["id"]
+
+    response = client.get(f"/sites/{site_id}", headers=user_b_headers)
+
+    assert response.status_code == 404
