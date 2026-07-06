@@ -26,8 +26,13 @@ jobs:
       - name: Run Ruff format check
         run: docker compose exec -T api ruff format --check .
 
-      - name: Create test database
-        run: docker compose exec -T db sh -lc 'createdb -U "$POSTGRES_USER" task_tracker_test || true'
+      - name: Reset test database
+        run: |
+          docker compose exec -T db sh -lc 'dropdb -U "$POSTGRES_USER" task_tracker_test || true'
+          docker compose exec -T db sh -lc 'createdb -U "$POSTGRES_USER" task_tracker_test'
+
+      - name: Run Alembic migrations on test database
+        run: docker compose exec -T api sh -lc 'DATABASE_URL="$TEST_DATABASE_URL" alembic upgrade head'
 
       - name: Run tests
         run: docker compose exec -T api python -m pytest -q

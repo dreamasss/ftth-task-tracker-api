@@ -157,3 +157,13 @@ Format code:
 Stop services:
 
     make down
+
+## Database migrations
+
+Run migrations on the development database:
+
+    make migrate
+
+Run migrations against a clean test database:
+
+    make migrate-test
