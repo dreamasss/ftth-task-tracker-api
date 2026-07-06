@@ -398,3 +398,15 @@ After deployment, verify the live API with:
 ```bash
 BASE_URL=https://your-api-url.example.com make smoke
 ```
+
+## Live demo
+
+- API: https://ftth-task-tracker-api.onrender.com
+- Swagger docs: https://ftth-task-tracker-api.onrender.com/docs
+- Health check: https://ftth-task-tracker-api.onrender.com/health
+
+Smoke test against the deployed API:
+
+```bash
+BASE_URL=https://ftth-task-tracker-api.onrender.com make smoke
+```
