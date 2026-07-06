@@ -418,3 +418,19 @@ BASE_URL=https://ftth-task-tracker-api.onrender.com make smoke
 - Access tokens expire, but refresh tokens are not implemented yet.
 - There is no role-based admin system yet.
 - This is a portfolio/demo project, not a production SaaS service.
+
+## Using Swagger authentication
+
+1. Open the Swagger docs: https://ftth-task-tracker-api.onrender.com/docs
+2. Run `POST /auth/register` with an email and password.
+3. Run `POST /auth/login` with the same credentials.
+4. Copy the returned access token.
+5. Click `Authorize` in Swagger.
+6. Enter the token in this format: `Bearer <token>`.
+7. Try protected endpoints such as `POST /sites`, `GET /sites`, or `POST /sites/{site_id}/events`.
+
+Example protected flow:
+
+```text
+Register user -> Login -> Authorize -> Create site -> Add event -> List site events
+```
