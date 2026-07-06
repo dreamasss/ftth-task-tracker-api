@@ -7,6 +7,12 @@ from app.main import app
 client = TestClient(app)
 
 
+def get_event_items(response):
+    data = response.json()
+    assert "items" in data
+    return data["items"]
+
+
 def create_test_site():
     response = client.post(
         "/sites",
@@ -41,7 +47,7 @@ def test_create_and_list_site_events():
 
     assert list_response.status_code == 200
 
-    events = list_response.json()
+    events = get_event_items(list_response)
     assert len(events) == 1
     assert events[0]["message"] == "Klientas neatsiliepia"
 
@@ -94,7 +100,7 @@ def test_status_change_creates_site_event():
     events_response = client.get(f"/sites/{site['id']}/events")
     assert events_response.status_code == 200
 
-    events = events_response.json()
+    events = get_event_items(events_response)
     assert len(events) == 1
     assert events[0]["event_type"] == "status_change"
     assert events[0]["message"] == "Status changed from new to blocked"
@@ -112,7 +118,7 @@ def test_same_status_does_not_create_status_change_event():
 
     events_response = client.get(f"/sites/{site['id']}/events")
     assert events_response.status_code == 200
-    assert events_response.json() == []
+    assert get_event_items(events_response) == []
 
 
 def test_create_site_event_rejects_empty_message():
@@ -156,3 +162,42 @@ def test_create_site_event_strips_message():
 
     assert response.status_code == 200
     assert response.json()["message"] == "Signal level checked"
+
+
+def test_list_site_events_returns_pagination_metadata():
+    site = create_test_site()
+
+    for index in range(2):
+        client.post(
+            f"/sites/{site['id']}/events",
+            json={
+                "event_type": "note",
+                "message": f"Pagination event {index}",
+            },
+        )
+
+    response = client.get(f"/sites/{site['id']}/events?limit=1&offset=0")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["total"] == 2
+    assert data["limit"] == 1
+    assert data["offset"] == 0
+    assert len(data["items"]) == 1
+
+
+def test_list_site_events_rejects_invalid_limit():
+    site = create_test_site()
+
+    response = client.get(f"/sites/{site['id']}/events?limit=0")
+
+    assert response.status_code == 422
+
+
+def test_list_site_events_rejects_negative_offset():
+    site = create_test_site()
+
+    response = client.get(f"/sites/{site['id']}/events?offset=-1")
+
+    assert response.status_code == 422

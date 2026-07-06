@@ -103,6 +103,13 @@ class SiteEventRead(BaseModel):
     created_at: datetime
 
 
+class SiteEventListResponse(BaseModel):
+    total: int
+    limit: int
+    offset: int
+    items: list[SiteEventRead]
+
+
 class SiteStatsResponse(BaseModel):
     new: int
     in_progress: int

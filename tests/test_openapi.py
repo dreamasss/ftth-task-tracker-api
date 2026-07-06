@@ -16,4 +16,5 @@ def test_openapi_contains_response_schemas():
     assert "SiteListResponse" in schemas
     assert "SiteStatsResponse" in schemas
     assert "SiteEventRead" in schemas
+    assert "SiteEventListResponse" in schemas
     assert "SiteDeleteResponse" in schemas

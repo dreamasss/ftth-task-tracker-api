@@ -10,6 +10,7 @@ from app.schemas import (
     SiteCreate,
     SiteDeleteResponse,
     SiteEventCreate,
+    SiteEventListResponse,
     SiteEventRead,
     SiteListResponse,
     SiteRead,
@@ -205,13 +206,27 @@ def create_site_event(
     return event_to_dict(event)
 
 
-@router.get("/{site_id}/events", response_model=list[SiteEventRead])
-def list_site_events(site_id: int, db: Session = Depends(get_db)):
+@router.get("/{site_id}/events", response_model=SiteEventListResponse)
+def list_site_events(
+    site_id: int,
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+):
     site = db.get(Site, site_id)
 
     if site is None:
         raise HTTPException(status_code=404, detail="Site not found")
 
-    events = db.execute(select(SiteEvent).where(SiteEvent.site_id == site_id).order_by(SiteEvent.id)).scalars().all()
+    query = select(SiteEvent).where(SiteEvent.site_id == site_id)
 
-    return [event_to_dict(event) for event in events]
+    total = db.execute(select(func.count()).select_from(query.subquery())).scalar_one()
+
+    events = db.execute(query.order_by(SiteEvent.id).limit(limit).offset(offset)).scalars().all()
+
+    return {
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "items": [event_to_dict(event) for event in events],
+    }
