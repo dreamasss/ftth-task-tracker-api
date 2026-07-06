@@ -69,9 +69,7 @@ def list_sites(status: SiteStatus | None = None, db: Session = Depends(get_db)):
 def get_sites_stats(db: Session = Depends(get_db)):
     stats = {status.value: 0 for status in SiteStatus}
 
-    rows = db.execute(
-        select(Site.status, func.count(Site.id)).group_by(Site.status)
-    ).all()
+    rows = db.execute(select(Site.status, func.count(Site.id)).group_by(Site.status)).all()
 
     for status, count in rows:
         stats[status] = count
@@ -170,10 +168,6 @@ def list_site_events(site_id: int, db: Session = Depends(get_db)):
     if site is None:
         raise HTTPException(status_code=404, detail="Site not found")
 
-    events = db.execute(
-        select(SiteEvent)
-        .where(SiteEvent.site_id == site_id)
-        .order_by(SiteEvent.id)
-    ).scalars().all()
+    events = db.execute(select(SiteEvent).where(SiteEvent.site_id == site_id).order_by(SiteEvent.id)).scalars().all()
 
     return [event_to_dict(event) for event in events]

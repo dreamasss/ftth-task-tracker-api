@@ -121,3 +121,13 @@ The `.env` file is ignored by Git. Use `.env.example` as the public template.
 Run Ruff locally:
 
     docker compose exec api ruff check .
+
+## Formatting
+
+Format code with Ruff:
+
+    docker compose exec api ruff format .
+
+Check formatting without changing files:
+
+    docker compose exec api ruff format --check .
