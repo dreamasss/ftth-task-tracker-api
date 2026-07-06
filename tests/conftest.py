@@ -13,7 +13,7 @@ if not test_db_url:
 os.environ["DATABASE_URL"] = test_db_url
 
 from app.db import SessionLocal, get_engine  # noqa: E402
-from app.models import Site, SiteEvent  # noqa: E402,F401
+from app.models import Site, SiteEvent, Task, User  # noqa: E402,F401
 
 
 def reset_public_schema():
@@ -41,6 +41,8 @@ def clean_tables():
     with SessionLocal() as db:
         db.execute(delete(SiteEvent))
         db.execute(delete(Site))
+        db.execute(delete(Task))
+        db.execute(delete(User))
         db.commit()
 
     yield
@@ -48,4 +50,6 @@ def clean_tables():
     with SessionLocal() as db:
         db.execute(delete(SiteEvent))
         db.execute(delete(Site))
+        db.execute(delete(Task))
+        db.execute(delete(User))
         db.commit()

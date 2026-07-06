@@ -1,10 +1,12 @@
 from fastapi import FastAPI
 
 from app.db import db_ping, get_engine
+from app.routers.auth import router as auth_router
 from app.routers.sites import router as sites_router
 
 app = FastAPI()
 
+app.include_router(auth_router)
 app.include_router(sites_router)
 
 

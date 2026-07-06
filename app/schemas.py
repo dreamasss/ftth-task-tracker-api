@@ -116,3 +116,31 @@ class SiteStatsResponse(BaseModel):
     blocked: int
     done: int
     reported: int
+
+
+class UserCreate(BaseModel):
+    email: str = Field(min_length=3, max_length=320)
+    password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_email(cls, value):
+        if isinstance(value, str):
+            return value.strip().lower()
+
+        return value
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value):
+        if "@" not in value or "." not in value.split("@")[-1]:
+            raise ValueError("Invalid email")
+
+        return value
+
+
+class UserRead(BaseModel):
+    id: int
+    email: str
+    is_active: bool
+    created_at: datetime
