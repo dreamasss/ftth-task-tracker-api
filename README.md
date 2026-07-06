@@ -131,3 +131,29 @@ Format code with Ruff:
 Check formatting without changing files:
 
     docker compose exec api ruff format --check .
+
+## Common commands
+
+Start services:
+
+    make up
+
+Rebuild services:
+
+    make build
+
+Run tests:
+
+    make test
+
+Run lint and format checks:
+
+    make ci
+
+Format code:
+
+    make format
+
+Stop services:
+
+    make down
