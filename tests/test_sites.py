@@ -7,6 +7,12 @@ from app.main import app
 client = TestClient(app)
 
 
+def get_site_items(response):
+    data = response.json()
+    assert "items" in data
+    return data["items"]
+
+
 def test_create_and_list_sites():
     address = f"Rokiskis, Testo g. {uuid4()}"
 
@@ -33,7 +39,7 @@ def test_create_and_list_sites():
 
     assert list_response.status_code == 200
 
-    sites = list_response.json()
+    sites = get_site_items(list_response)
     assert any(site["address"] == address for site in sites)
 
 
@@ -198,7 +204,7 @@ def test_list_sites_filters_by_status():
 
     assert response.status_code == 200
 
-    sites = response.json()
+    sites = get_site_items(response)
     assert len(sites) == 1
     assert sites[0]["status"] == "blocked"
     assert "Blocked objektas" in sites[0]["address"]
@@ -270,7 +276,7 @@ def test_list_sites_searches_by_address():
 
     assert response.status_code == 200
 
-    sites = response.json()
+    sites = get_site_items(response)
     assert len(sites) == 1
     assert "Vilnius" in sites[0]["address"]
 
@@ -298,7 +304,7 @@ def test_list_sites_searches_by_customer_name():
 
     assert response.status_code == 200
 
-    sites = response.json()
+    sites = get_site_items(response)
     assert len(sites) == 1
     assert sites[0]["customer_name"] == "Jonas Fiber"
 
@@ -317,7 +323,7 @@ def test_list_sites_uses_limit_and_offset():
 
     assert response.status_code == 200
 
-    sites = response.json()
+    sites = get_site_items(response)
     assert len(sites) == 1
 
 
@@ -343,3 +349,24 @@ def test_list_sites_rejects_empty_search():
     response = client.get("/sites?search=")
 
     assert response.status_code == 422
+
+
+def test_list_sites_returns_pagination_metadata():
+    for index in range(2):
+        client.post(
+            "/sites",
+            json={
+                "address": f"Metadata objektas {index} {uuid4()}",
+                "status": "new",
+            },
+        )
+
+    response = client.get("/sites?limit=1&offset=0")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["total"] == 2
+    assert data["limit"] == 1
+    assert data["offset"] == 0
+    assert len(data["items"]) == 1

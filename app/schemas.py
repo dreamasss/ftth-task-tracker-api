@@ -43,6 +43,13 @@ class SiteRead(BaseModel):
     created_at: datetime
 
 
+class SiteListResponse(BaseModel):
+    total: int
+    limit: int
+    offset: int
+    items: list[SiteRead]
+
+
 class SiteDeleteResponse(BaseModel):
     deleted: bool
     id: int

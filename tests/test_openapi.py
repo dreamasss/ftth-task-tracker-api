@@ -13,5 +13,6 @@ def test_openapi_contains_response_schemas():
     schemas = response.json()["components"]["schemas"]
 
     assert "SiteRead" in schemas
+    assert "SiteListResponse" in schemas
     assert "SiteEventRead" in schemas
     assert "SiteDeleteResponse" in schemas

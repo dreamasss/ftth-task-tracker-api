@@ -9,6 +9,7 @@ from app.schemas import (
     SiteDeleteResponse,
     SiteEventCreate,
     SiteEventRead,
+    SiteListResponse,
     SiteRead,
     SiteStatus,
     SiteUpdate,
@@ -54,7 +55,7 @@ def create_site(site_in: SiteCreate, db: Session = Depends(get_db)):
     return site_to_dict(site)
 
 
-@router.get("", response_model=list[SiteRead])
+@router.get("", response_model=SiteListResponse)
 def list_sites(
     status: SiteStatus | None = None,
     search: str | None = Query(default=None, min_length=1, max_length=100),
@@ -76,9 +77,16 @@ def list_sites(
             )
         )
 
+    total = db.execute(select(func.count()).select_from(query.subquery())).scalar_one()
+
     sites = db.execute(query.order_by(Site.id).limit(limit).offset(offset)).scalars().all()
 
-    return [site_to_dict(site) for site in sites]
+    return {
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "items": [site_to_dict(site) for site in sites],
+    }
 
 
 @router.get("/stats", response_model=dict[str, int])
