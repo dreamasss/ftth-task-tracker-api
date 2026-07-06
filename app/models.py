@@ -14,6 +14,7 @@ class User(Base):
     created_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     tasks: Mapped[list["Task"]] = relationship(back_populates="owner", cascade="all, delete-orphan")
+    sites: Mapped[list["Site"]] = relationship(back_populates="user")
 
 
 class Task(Base):
@@ -41,6 +42,11 @@ class Site(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"),
+        index=True,
+        nullable=True,
+    )
     address: Mapped[str] = mapped_column(String(255), nullable=False)
     customer_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
     status: Mapped[str] = mapped_column(String(50), default="new", nullable=False)
@@ -53,6 +59,7 @@ class Site(Base):
         nullable=False,
     )
 
+    user: Mapped["User | None"] = relationship(back_populates="sites")
     events: Mapped[list["SiteEvent"]] = relationship(back_populates="site", cascade="all, delete-orphan")
 
 

@@ -28,6 +28,7 @@ router = APIRouter(prefix="/sites", tags=["sites"])
 def site_to_dict(site: Site):
     return {
         "id": site.id,
+        "user_id": site.user_id,
         "address": site.address,
         "customer_name": site.customer_name,
         "status": site.status,
@@ -50,6 +51,7 @@ def event_to_dict(event: SiteEvent):
 @router.post("", response_model=SiteRead)
 def create_site(site_in: SiteCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     site = Site(
+        user_id=current_user.id,
         address=site_in.address,
         customer_name=site_in.customer_name,
         status=site_in.status.value,
