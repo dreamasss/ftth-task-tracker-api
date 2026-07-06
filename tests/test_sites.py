@@ -370,3 +370,63 @@ def test_list_sites_returns_pagination_metadata():
     assert data["limit"] == 1
     assert data["offset"] == 0
     assert len(data["items"]) == 1
+
+
+def test_list_sites_sorts_by_address_ascending():
+    client.post(
+        "/sites",
+        json={
+            "address": f"ZZZ sort objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+    client.post(
+        "/sites",
+        json={
+            "address": f"AAA sort objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+
+    response = client.get("/sites?sort_by=address&sort_order=asc")
+
+    assert response.status_code == 200
+
+    sites = get_site_items(response)
+    assert sites[0]["address"].startswith("AAA")
+
+
+def test_list_sites_sorts_by_address_descending():
+    client.post(
+        "/sites",
+        json={
+            "address": f"AAA sort objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+    client.post(
+        "/sites",
+        json={
+            "address": f"ZZZ sort objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+
+    response = client.get("/sites?sort_by=address&sort_order=desc")
+
+    assert response.status_code == 200
+
+    sites = get_site_items(response)
+    assert sites[0]["address"].startswith("ZZZ")
+
+
+def test_list_sites_rejects_invalid_sort_by():
+    response = client.get("/sites?sort_by=invalid")
+
+    assert response.status_code == 422
+
+
+def test_list_sites_rejects_invalid_sort_order():
+    response = client.get("/sites?sort_order=sideways")
+
+    assert response.status_code == 422

@@ -206,3 +206,5 @@ Query parameters:
 | `search` | Optional text search by address or customer name, 1–100 characters |
 | `limit` | Number of items to return, from 1 to 100 |
 | `offset` | Number of items to skip, minimum 0 |
+| `sort_by` | Sort field: `id`, `address`, `status`, `created_at` |
+| `sort_order` | Sort direction: `asc` or `desc` |

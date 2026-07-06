@@ -1,3 +1,5 @@
+from typing import Literal
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
@@ -61,6 +63,8 @@ def list_sites(
     search: str | None = Query(default=None, min_length=1, max_length=100),
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
+    sort_by: Literal["id", "address", "status", "created_at"] = Query(default="id"),
+    sort_order: Literal["asc", "desc"] = Query(default="asc"),
     db: Session = Depends(get_db),
 ):
     query = select(Site)
@@ -79,7 +83,16 @@ def list_sites(
 
     total = db.execute(select(func.count()).select_from(query.subquery())).scalar_one()
 
-    sites = db.execute(query.order_by(Site.id).limit(limit).offset(offset)).scalars().all()
+    sort_columns = {
+        "id": Site.id,
+        "address": Site.address,
+        "status": Site.status,
+        "created_at": Site.created_at,
+    }
+    sort_column = sort_columns[sort_by]
+    order_by = sort_column.desc() if sort_order == "desc" else sort_column.asc()
+
+    sites = db.execute(query.order_by(order_by).limit(limit).offset(offset)).scalars().all()
 
     return {
         "total": total,
