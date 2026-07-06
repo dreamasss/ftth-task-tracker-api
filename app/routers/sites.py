@@ -13,6 +13,7 @@ from app.schemas import (
     SiteEventRead,
     SiteListResponse,
     SiteRead,
+    SiteStatsResponse,
     SiteStatus,
     SiteUpdate,
 )
@@ -102,7 +103,7 @@ def list_sites(
     }
 
 
-@router.get("/stats", response_model=dict[str, int])
+@router.get("/stats", response_model=SiteStatsResponse)
 def get_sites_stats(db: Session = Depends(get_db)):
     stats = {status.value: 0 for status in SiteStatus}
 

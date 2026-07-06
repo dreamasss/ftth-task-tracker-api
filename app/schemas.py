@@ -66,3 +66,11 @@ class SiteEventRead(BaseModel):
     event_type: SiteEventType
     message: str
     created_at: datetime
+
+
+class SiteStatsResponse(BaseModel):
+    new: int
+    in_progress: int
+    blocked: int
+    done: int
+    reported: int
