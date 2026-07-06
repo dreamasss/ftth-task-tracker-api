@@ -556,3 +556,51 @@ def test_update_site_rejects_null_status():
     )
 
     assert update_response.status_code == 422
+
+
+def test_create_site_rejects_empty_address():
+    response = client.post(
+        "/sites",
+        json={
+            "address": "",
+            "status": "new",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_create_site_rejects_empty_customer_name():
+    response = client.post(
+        "/sites",
+        json={
+            "address": f"Validus adresas {uuid4()}",
+            "customer_name": "",
+            "status": "new",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_update_site_rejects_empty_comment():
+    create_response = client.post(
+        "/sites",
+        json={
+            "address": f"Empty comment objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+
+    assert create_response.status_code == 200
+
+    site = create_response.json()
+
+    update_response = client.patch(
+        f"/sites/{site['id']}",
+        json={
+            "comment": "",
+        },
+    )
+
+    assert update_response.status_code == 422

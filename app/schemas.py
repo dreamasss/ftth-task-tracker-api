@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 
 class SiteStatus(str, Enum):
@@ -21,17 +21,17 @@ class SiteEventType(str, Enum):
 
 
 class SiteCreate(BaseModel):
-    address: str
-    customer_name: str | None = None
+    address: str = Field(min_length=1, max_length=255)
+    customer_name: str | None = Field(default=None, min_length=1, max_length=200)
     status: SiteStatus = SiteStatus.new
-    comment: str | None = None
+    comment: str | None = Field(default=None, min_length=1, max_length=2000)
 
 
 class SiteUpdate(BaseModel):
-    address: str | None = None
-    customer_name: str | None = None
+    address: str | None = Field(default=None, min_length=1, max_length=255)
+    customer_name: str | None = Field(default=None, min_length=1, max_length=200)
     status: SiteStatus | None = None
-    comment: str | None = None
+    comment: str | None = Field(default=None, min_length=1, max_length=2000)
 
     @model_validator(mode="after")
     def reject_null_required_fields(self):
@@ -68,7 +68,7 @@ class SiteDeleteResponse(BaseModel):
 
 class SiteEventCreate(BaseModel):
     event_type: SiteEventType = SiteEventType.note
-    message: str
+    message: str = Field(min_length=1, max_length=2000)
 
 
 class SiteEventRead(BaseModel):

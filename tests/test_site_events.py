@@ -113,3 +113,17 @@ def test_same_status_does_not_create_status_change_event():
     events_response = client.get(f"/sites/{site['id']}/events")
     assert events_response.status_code == 200
     assert events_response.json() == []
+
+
+def test_create_site_event_rejects_empty_message():
+    site = create_test_site()
+
+    response = client.post(
+        f"/sites/{site['id']}/events",
+        json={
+            "event_type": "note",
+            "message": "",
+        },
+    )
+
+    assert response.status_code == 422
