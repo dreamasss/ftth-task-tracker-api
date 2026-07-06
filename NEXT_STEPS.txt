@@ -1,1 +1,28 @@
-NEXT: add tests, git repo, then auth/register + login JWT
+FTTH Task Tracker API - Next Steps
+
+Current status:
+- FastAPI + PostgreSQL API works locally with Docker Compose.
+- Auth is implemented: register, login, current user endpoint.
+- Access tokens expire.
+- Sites are user-owned.
+- Site list, detail, update, delete, stats, and events are restricted to the owner.
+- Alembic migrations are used.
+- Tests run in CI.
+- Docker image runs migrations on container start.
+- Smoke test script exists for local and deployed API verification.
+- README includes auth, demo flow, local commands, and deployment checklist.
+
+Useful commands:
+- make up
+- make test-db
+- make ci
+- make smoke
+- make down
+
+Next priorities:
+1. Deploy API to a hosting platform.
+2. Create production PostgreSQL database.
+3. Set DATABASE_URL and SECRET_KEY in hosting environment.
+4. Run smoke test against live URL.
+5. Add live API URL and Swagger docs URL to README.
+6. Optional: add small frontend/admin UI later.
