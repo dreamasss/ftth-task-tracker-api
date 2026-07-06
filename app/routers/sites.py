@@ -6,8 +6,8 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
+from app.dependencies import get_current_user
 from app.models import Site, SiteEvent, User
-from app.routers.auth import get_current_user
 from app.schemas import (
     SiteCreate,
     SiteDeleteResponse,
