@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -201,6 +202,8 @@ def create_site_event(
     )
 
     db.add(event)
+    site.updated_at = datetime.now(timezone.utc)
+
     db.commit()
     db.refresh(event)
 

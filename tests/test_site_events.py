@@ -275,3 +275,24 @@ def test_list_site_events_rejects_invalid_sort_order():
     response = client.get(f"/sites/{site['id']}/events?sort_order=sideways")
 
     assert response.status_code == 422
+
+
+def test_create_site_event_updates_site_updated_at():
+    site = create_test_site()
+    old_updated_at = site["updated_at"]
+
+    event_response = client.post(
+        f"/sites/{site['id']}/events",
+        json={
+            "event_type": "note",
+            "message": "Updated site timestamp through event",
+        },
+    )
+
+    assert event_response.status_code == 200
+
+    site_response = client.get(f"/sites/{site['id']}")
+    assert site_response.status_code == 200
+
+    updated_site = site_response.json()
+    assert updated_site["updated_at"] != old_updated_at
