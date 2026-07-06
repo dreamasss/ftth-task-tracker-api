@@ -22,3 +22,13 @@ def test_openapi_contains_response_schemas():
     assert "UserLogin" in schemas
     assert "TokenResponse" in schemas
     assert "SiteDeleteResponse" in schemas
+
+
+def test_openapi_has_project_metadata():
+    response = client.get("/openapi.json")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["info"]["title"] == "FTTH Task Tracker API"
+    assert data["info"]["version"] == "1.0.0"

@@ -4,7 +4,11 @@ from app.db import db_ping, get_engine
 from app.routers.auth import router as auth_router
 from app.routers.sites import router as sites_router
 
-app = FastAPI()
+app = FastAPI(
+    title="FTTH Task Tracker API",
+    description="Backend API for tracking FTTH work sites, statuses, and site history events.",
+    version="1.0.0",
+)
 
 app.include_router(auth_router)
 app.include_router(sites_router)
