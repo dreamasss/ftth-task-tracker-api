@@ -753,34 +753,9 @@ def test_create_site_assigns_current_user():
     assert response.json()["user_id"] == user_id
 
 
-def make_auth_headers_for_email(email: str):
-    password = "strong-password-123"
-
-    register_response = client.post(
-        "/auth/register",
-        json={
-            "email": email,
-            "password": password,
-        },
-    )
-    assert register_response.status_code == 200
-
-    login_response = client.post(
-        "/auth/login",
-        json={
-            "email": email,
-            "password": password,
-        },
-    )
-    assert login_response.status_code == 200
-
-    token = login_response.json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
-
-
-def test_list_sites_returns_only_current_user_sites():
-    user_a_headers = make_auth_headers_for_email(f"user-a-{uuid4()}@example.com")
-    user_b_headers = make_auth_headers_for_email(f"user-b-{uuid4()}@example.com")
+def test_list_sites_returns_only_current_user_sites(auth_headers_for_email):
+    user_a_headers = auth_headers_for_email(f"user-a-{uuid4()}@example.com")
+    user_b_headers = auth_headers_for_email(f"user-b-{uuid4()}@example.com")
 
     user_a_response = client.post(
         "/sites",
@@ -812,9 +787,9 @@ def test_list_sites_returns_only_current_user_sites():
     assert user_b_response.json()["address"] not in addresses
 
 
-def test_get_site_hides_other_users_site():
-    user_a_headers = make_auth_headers_for_email(f"owner-a-{uuid4()}@example.com")
-    user_b_headers = make_auth_headers_for_email(f"owner-b-{uuid4()}@example.com")
+def test_get_site_hides_other_users_site(auth_headers_for_email):
+    user_a_headers = auth_headers_for_email(f"owner-a-{uuid4()}@example.com")
+    user_b_headers = auth_headers_for_email(f"owner-b-{uuid4()}@example.com")
 
     create_response = client.post(
         "/sites",
@@ -833,9 +808,9 @@ def test_get_site_hides_other_users_site():
     assert response.status_code == 404
 
 
-def test_sites_stats_counts_only_current_user_sites():
-    user_a_headers = make_auth_headers_for_email(f"stats-owner-a-{uuid4()}@example.com")
-    user_b_headers = make_auth_headers_for_email(f"stats-owner-b-{uuid4()}@example.com")
+def test_sites_stats_counts_only_current_user_sites(auth_headers_for_email):
+    user_a_headers = auth_headers_for_email(f"stats-owner-a-{uuid4()}@example.com")
+    user_b_headers = auth_headers_for_email(f"stats-owner-b-{uuid4()}@example.com")
 
     response_a = client.post(
         "/sites",
@@ -867,9 +842,9 @@ def test_sites_stats_counts_only_current_user_sites():
     assert data["done"] == 0
 
 
-def test_update_site_hides_other_users_site():
-    user_a_headers = make_auth_headers_for_email(f"patch-owner-a-{uuid4()}@example.com")
-    user_b_headers = make_auth_headers_for_email(f"patch-owner-b-{uuid4()}@example.com")
+def test_update_site_hides_other_users_site(auth_headers_for_email):
+    user_a_headers = auth_headers_for_email(f"patch-owner-a-{uuid4()}@example.com")
+    user_b_headers = auth_headers_for_email(f"patch-owner-b-{uuid4()}@example.com")
 
     create_response = client.post(
         "/sites",
@@ -894,9 +869,9 @@ def test_update_site_hides_other_users_site():
     assert response.status_code == 404
 
 
-def test_delete_site_hides_other_users_site():
-    user_a_headers = make_auth_headers_for_email(f"delete-owner-a-{uuid4()}@example.com")
-    user_b_headers = make_auth_headers_for_email(f"delete-owner-b-{uuid4()}@example.com")
+def test_delete_site_hides_other_users_site(auth_headers_for_email):
+    user_a_headers = auth_headers_for_email(f"delete-owner-a-{uuid4()}@example.com")
+    user_b_headers = auth_headers_for_email(f"delete-owner-b-{uuid4()}@example.com")
 
     create_response = client.post(
         "/sites",

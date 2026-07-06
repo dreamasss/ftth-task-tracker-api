@@ -327,34 +327,9 @@ def test_create_site_event_requires_authentication(auth_headers):
     assert response.status_code == 401
 
 
-def make_site_event_auth_headers(email: str):
-    password = "strong-password-123"
-
-    register_response = client.post(
-        "/auth/register",
-        json={
-            "email": email,
-            "password": password,
-        },
-    )
-    assert register_response.status_code == 200
-
-    login_response = client.post(
-        "/auth/login",
-        json={
-            "email": email,
-            "password": password,
-        },
-    )
-    assert login_response.status_code == 200
-
-    token = login_response.json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
-
-
-def test_list_site_events_hides_other_users_site():
-    user_a_headers = make_site_event_auth_headers(f"events-owner-a-{uuid4()}@example.com")
-    user_b_headers = make_site_event_auth_headers(f"events-owner-b-{uuid4()}@example.com")
+def test_list_site_events_hides_other_users_site(auth_headers_for_email):
+    user_a_headers = auth_headers_for_email(f"events-owner-a-{uuid4()}@example.com")
+    user_b_headers = auth_headers_for_email(f"events-owner-b-{uuid4()}@example.com")
 
     create_response = client.post(
         "/sites",
@@ -373,9 +348,9 @@ def test_list_site_events_hides_other_users_site():
     assert response.status_code == 404
 
 
-def test_create_site_event_hides_other_users_site():
-    user_a_headers = make_site_event_auth_headers(f"event-create-owner-a-{uuid4()}@example.com")
-    user_b_headers = make_site_event_auth_headers(f"event-create-owner-b-{uuid4()}@example.com")
+def test_create_site_event_hides_other_users_site(auth_headers_for_email):
+    user_a_headers = auth_headers_for_email(f"event-create-owner-a-{uuid4()}@example.com")
+    user_b_headers = auth_headers_for_email(f"event-create-owner-b-{uuid4()}@example.com")
 
     create_response = client.post(
         "/sites",
