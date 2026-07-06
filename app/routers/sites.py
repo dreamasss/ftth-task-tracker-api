@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
@@ -55,13 +55,32 @@ def create_site(site_in: SiteCreate, db: Session = Depends(get_db)):
 
 
 @router.get("", response_model=list[SiteRead])
-def list_sites(status: SiteStatus | None = None, db: Session = Depends(get_db)):
+def list_sites(
+    status: SiteStatus | None = None,
+    search: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+):
+    limit = min(limit, 100)
+    offset = max(offset, 0)
+
     query = select(Site)
 
     if status is not None:
         query = query.where(Site.status == status.value)
 
-    sites = db.execute(query.order_by(Site.id)).scalars().all()
+    if search:
+        pattern = f"%{search}%"
+        query = query.where(
+            or_(
+                Site.address.ilike(pattern),
+                Site.customer_name.ilike(pattern),
+            )
+        )
+
+    sites = db.execute(query.order_by(Site.id).limit(limit).offset(offset)).scalars().all()
+
     return [site_to_dict(site) for site in sites]
 
 

@@ -245,3 +245,77 @@ def test_get_sites_stats():
     assert stats["blocked"] == 1
     assert stats["done"] == 2
     assert stats["reported"] == 0
+
+
+def test_list_sites_searches_by_address():
+    client.post(
+        "/sites",
+        json={
+            "address": f"Vilnius Paieskos g. {uuid4()}",
+            "customer_name": "Klientas A",
+            "status": "new",
+        },
+    )
+
+    client.post(
+        "/sites",
+        json={
+            "address": f"Kaunas Kita g. {uuid4()}",
+            "customer_name": "Klientas B",
+            "status": "new",
+        },
+    )
+
+    response = client.get("/sites?search=Vilnius")
+
+    assert response.status_code == 200
+
+    sites = response.json()
+    assert len(sites) == 1
+    assert "Vilnius" in sites[0]["address"]
+
+
+def test_list_sites_searches_by_customer_name():
+    client.post(
+        "/sites",
+        json={
+            "address": f"Adresas {uuid4()}",
+            "customer_name": "Jonas Fiber",
+            "status": "new",
+        },
+    )
+
+    client.post(
+        "/sites",
+        json={
+            "address": f"Adresas {uuid4()}",
+            "customer_name": "Petras Kabelis",
+            "status": "new",
+        },
+    )
+
+    response = client.get("/sites?search=Fiber")
+
+    assert response.status_code == 200
+
+    sites = response.json()
+    assert len(sites) == 1
+    assert sites[0]["customer_name"] == "Jonas Fiber"
+
+
+def test_list_sites_uses_limit_and_offset():
+    for index in range(3):
+        client.post(
+            "/sites",
+            json={
+                "address": f"Pagination objektas {index} {uuid4()}",
+                "status": "new",
+            },
+        )
+
+    response = client.get("/sites?limit=1&offset=1")
+
+    assert response.status_code == 200
+
+    sites = response.json()
+    assert len(sites) == 1
