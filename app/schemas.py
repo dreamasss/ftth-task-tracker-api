@@ -144,3 +144,21 @@ class UserRead(BaseModel):
     email: str
     is_active: bool
     created_at: datetime
+
+
+class UserLogin(BaseModel):
+    email: str = Field(min_length=3, max_length=320)
+    password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_email(cls, value):
+        if isinstance(value, str):
+            return value.strip().lower()
+
+        return value
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"

@@ -19,4 +19,6 @@ def test_openapi_contains_response_schemas():
     assert "SiteEventListResponse" in schemas
     assert "UserCreate" in schemas
     assert "UserRead" in schemas
+    assert "UserLogin" in schemas
+    assert "TokenResponse" in schemas
     assert "SiteDeleteResponse" in schemas

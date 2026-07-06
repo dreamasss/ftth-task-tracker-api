@@ -43,3 +43,25 @@ def verify_password(password: str, stored_hash: str) -> bool:
         b64encode(password_hash).decode("ascii"),
         expected_hash.decode("ascii"),
     )
+
+
+def create_access_token(user_id: int) -> str:
+    import json
+    import time
+
+    secret = os.getenv("SECRET_KEY", "dev-secret-change-me")
+    payload = {
+        "sub": str(user_id),
+        "iat": int(time.time()),
+    }
+
+    payload_json = json.dumps(payload, separators=(",", ":"), sort_keys=True)
+    payload_b64 = b64encode(payload_json.encode("utf-8")).decode("ascii")
+
+    signature = hmac.new(
+        secret.encode("utf-8"),
+        payload_b64.encode("ascii"),
+        hashlib.sha256,
+    ).hexdigest()
+
+    return f"{payload_b64}.{signature}"

@@ -98,3 +98,95 @@ def test_register_user_rejects_invalid_email():
     )
 
     assert response.status_code == 422
+
+
+def test_login_user():
+    email = f"login-{uuid4()}@example.com"
+    password = "strong-password-123"
+
+    register_response = client.post(
+        "/auth/register",
+        json={
+            "email": email,
+            "password": password,
+        },
+    )
+
+    assert register_response.status_code == 200
+
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": email,
+            "password": password,
+        },
+    )
+
+    assert login_response.status_code == 200
+
+    token_data = login_response.json()
+    assert token_data["token_type"] == "bearer"
+    assert isinstance(token_data["access_token"], str)
+    assert "." in token_data["access_token"]
+
+
+def test_login_user_normalizes_email():
+    email = f"mixed-login-{uuid4()}@example.com"
+
+    register_response = client.post(
+        "/auth/register",
+        json={
+            "email": email,
+            "password": "strong-password-123",
+        },
+    )
+
+    assert register_response.status_code == 200
+
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": f"  {email.upper()}  ",
+            "password": "strong-password-123",
+        },
+    )
+
+    assert login_response.status_code == 200
+
+
+def test_login_user_rejects_wrong_password():
+    email = f"wrong-password-{uuid4()}@example.com"
+
+    register_response = client.post(
+        "/auth/register",
+        json={
+            "email": email,
+            "password": "strong-password-123",
+        },
+    )
+
+    assert register_response.status_code == 200
+
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": email,
+            "password": "wrong-password-123",
+        },
+    )
+
+    assert login_response.status_code == 401
+    assert login_response.json()["detail"] == "Invalid email or password"
+
+
+def test_login_user_rejects_unknown_email():
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": f"unknown-{uuid4()}@example.com",
+            "password": "strong-password-123",
+        },
+    )
+
+    assert login_response.status_code == 401
+    assert login_response.json()["detail"] == "Invalid email or password"
