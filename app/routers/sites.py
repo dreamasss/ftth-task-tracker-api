@@ -126,13 +126,17 @@ def list_sites(
 
 
 @router.get("/stats", response_model=SiteStatsResponse)
-def get_sites_stats(db: Session = Depends(get_db)):
+def get_sites_stats(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     stats = {status.value: 0 for status in SiteStatus}
 
-    rows = db.execute(select(Site.status, func.count(Site.id)).group_by(Site.status)).all()
+    rows = db.execute(
+        select(Site.status, func.count(Site.id)).where(Site.user_id == current_user.id).group_by(Site.status)
+    ).all()
 
     for status, count in rows:
         stats[status] = count
+
+    stats["total"] = sum(stats.values())
 
     return stats
 

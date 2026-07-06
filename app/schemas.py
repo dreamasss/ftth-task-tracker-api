@@ -112,6 +112,7 @@ class SiteEventListResponse(BaseModel):
 
 
 class SiteStatsResponse(BaseModel):
+    total: int = 0
     new: int
     in_progress: int
     blocked: int

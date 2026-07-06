@@ -254,7 +254,7 @@ def test_get_sites_stats(auth_headers):
         },
     )
 
-    response = client.get("/sites/stats")
+    response = client.get("/sites/stats", headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -831,3 +831,37 @@ def test_get_site_hides_other_users_site():
     response = client.get(f"/sites/{site_id}", headers=user_b_headers)
 
     assert response.status_code == 404
+
+
+def test_sites_stats_counts_only_current_user_sites():
+    user_a_headers = make_auth_headers_for_email(f"stats-owner-a-{uuid4()}@example.com")
+    user_b_headers = make_auth_headers_for_email(f"stats-owner-b-{uuid4()}@example.com")
+
+    response_a = client.post(
+        "/sites",
+        headers=user_a_headers,
+        json={
+            "address": f"Stats user A {uuid4()}",
+            "status": "blocked",
+        },
+    )
+    assert response_a.status_code == 200
+
+    response_b = client.post(
+        "/sites",
+        headers=user_b_headers,
+        json={
+            "address": f"Stats user B {uuid4()}",
+            "status": "done",
+        },
+    )
+    assert response_b.status_code == 200
+
+    stats_response = client.get("/sites/stats", headers=user_a_headers)
+
+    assert stats_response.status_code == 200
+    data = stats_response.json()
+
+    assert data["total"] == 1
+    assert data["blocked"] == 1
+    assert data["done"] == 0
