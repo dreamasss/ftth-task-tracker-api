@@ -338,6 +338,7 @@ PATCH /sites/{site_id}
 DELETE /sites/{site_id}
 GET /sites/{site_id}/events
 POST /sites/{site_id}/events
+```
 
 Users can only access their own sites and site events. Requests for another user's site return 404.
 
