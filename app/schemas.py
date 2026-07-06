@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class SiteStatus(str, Enum):
@@ -26,12 +26,28 @@ class SiteCreate(BaseModel):
     status: SiteStatus = SiteStatus.new
     comment: str | None = Field(default=None, min_length=1, max_length=2000)
 
+    @field_validator("address", "customer_name", "comment", mode="before")
+    @classmethod
+    def strip_text_fields(cls, value):
+        if isinstance(value, str):
+            return value.strip()
+
+        return value
+
 
 class SiteUpdate(BaseModel):
     address: str | None = Field(default=None, min_length=1, max_length=255)
     customer_name: str | None = Field(default=None, min_length=1, max_length=200)
     status: SiteStatus | None = None
     comment: str | None = Field(default=None, min_length=1, max_length=2000)
+
+    @field_validator("address", "customer_name", "comment", mode="before")
+    @classmethod
+    def strip_text_fields(cls, value):
+        if isinstance(value, str):
+            return value.strip()
+
+        return value
 
     @model_validator(mode="after")
     def reject_null_required_fields(self):
@@ -69,6 +85,14 @@ class SiteDeleteResponse(BaseModel):
 class SiteEventCreate(BaseModel):
     event_type: SiteEventType = SiteEventType.note
     message: str = Field(min_length=1, max_length=2000)
+
+    @field_validator("message", mode="before")
+    @classmethod
+    def strip_message(cls, value):
+        if isinstance(value, str):
+            return value.strip()
+
+        return value
 
 
 class SiteEventRead(BaseModel):

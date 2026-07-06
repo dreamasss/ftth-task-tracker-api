@@ -604,3 +604,58 @@ def test_update_site_rejects_empty_comment():
     )
 
     assert update_response.status_code == 422
+
+
+def test_create_site_rejects_whitespace_only_address():
+    response = client.post(
+        "/sites",
+        json={
+            "address": "     ",
+            "status": "new",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_create_site_strips_text_fields():
+    response = client.post(
+        "/sites",
+        json={
+            "address": "   Strip test address   ",
+            "customer_name": "   Strip klientas   ",
+            "status": "new",
+            "comment": "   Strip komentaras   ",
+        },
+    )
+
+    assert response.status_code == 200
+
+    site = response.json()
+    assert site["address"] == "Strip test address"
+    assert site["customer_name"] == "Strip klientas"
+    assert site["comment"] == "Strip komentaras"
+
+
+def test_update_site_strips_text_fields():
+    create_response = client.post(
+        "/sites",
+        json={
+            "address": f"Strip update objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+
+    assert create_response.status_code == 200
+
+    site = create_response.json()
+
+    update_response = client.patch(
+        f"/sites/{site['id']}",
+        json={
+            "comment": "   Naujas komentaras   ",
+        },
+    )
+
+    assert update_response.status_code == 200
+    assert update_response.json()["comment"] == "Naujas komentaras"

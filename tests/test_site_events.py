@@ -127,3 +127,32 @@ def test_create_site_event_rejects_empty_message():
     )
 
     assert response.status_code == 422
+
+
+def test_create_site_event_rejects_whitespace_only_message():
+    site = create_test_site()
+
+    response = client.post(
+        f"/sites/{site['id']}/events",
+        json={
+            "event_type": "note",
+            "message": "     ",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_create_site_event_strips_message():
+    site = create_test_site()
+
+    response = client.post(
+        f"/sites/{site['id']}/events",
+        json={
+            "event_type": "note",
+            "message": "   Signal level checked   ",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["message"] == "Signal level checked"
