@@ -135,6 +135,11 @@ def update_site(site_id: int, site_in: SiteUpdate, db: Session = Depends(get_db)
 
     old_status = site.status
 
+    update_data = site_in.model_dump(exclude_unset=True)
+
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
     if site_in.address is not None:
         site.address = site_in.address
 

@@ -458,3 +458,25 @@ def test_update_site_changes_updated_at():
     updated_site = update_response.json()
     assert updated_site["updated_at"] >= old_updated_at
     assert updated_site["comment"] == "Updated comment"
+
+
+def test_update_site_rejects_empty_body():
+    create_response = client.post(
+        "/sites",
+        json={
+            "address": f"Empty update objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+
+    assert create_response.status_code == 200
+
+    site = create_response.json()
+
+    update_response = client.patch(
+        f"/sites/{site['id']}",
+        json={},
+    )
+
+    assert update_response.status_code == 400
+    assert update_response.json()["detail"] == "No fields to update"
