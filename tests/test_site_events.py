@@ -371,3 +371,31 @@ def test_list_site_events_hides_other_users_site():
     response = client.get(f"/sites/{site_id}/events", headers=user_b_headers)
 
     assert response.status_code == 404
+
+
+def test_create_site_event_hides_other_users_site():
+    user_a_headers = make_site_event_auth_headers(f"event-create-owner-a-{uuid4()}@example.com")
+    user_b_headers = make_site_event_auth_headers(f"event-create-owner-b-{uuid4()}@example.com")
+
+    create_response = client.post(
+        "/sites",
+        headers=user_a_headers,
+        json={
+            "address": f"Private event create objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+    assert create_response.status_code == 200
+
+    site_id = create_response.json()["id"]
+
+    response = client.post(
+        f"/sites/{site_id}/events",
+        headers=user_b_headers,
+        json={
+            "event_type": "note",
+            "message": "Trying to write to another users site",
+        },
+    )
+
+    assert response.status_code == 404
