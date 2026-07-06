@@ -213,6 +213,7 @@ def list_site_events(
     event_type: SiteEventType | None = None,
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
+    sort_order: Literal["asc", "desc"] = Query(default="asc"),
     db: Session = Depends(get_db),
 ):
     site = db.get(Site, site_id)
@@ -227,7 +228,9 @@ def list_site_events(
 
     total = db.execute(select(func.count()).select_from(query.subquery())).scalar_one()
 
-    events = db.execute(query.order_by(SiteEvent.id).limit(limit).offset(offset)).scalars().all()
+    order_by = SiteEvent.id.desc() if sort_order == "desc" else SiteEvent.id.asc()
+
+    events = db.execute(query.order_by(order_by).limit(limit).offset(offset)).scalars().all()
 
     return {
         "total": total,

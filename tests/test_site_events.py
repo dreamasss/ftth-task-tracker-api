@@ -239,3 +239,39 @@ def test_list_site_events_rejects_invalid_event_type_filter():
     response = client.get(f"/sites/{site['id']}/events?event_type=bad_type")
 
     assert response.status_code == 422
+
+
+def test_list_site_events_sorts_descending():
+    site = create_test_site()
+
+    client.post(
+        f"/sites/{site['id']}/events",
+        json={
+            "event_type": "note",
+            "message": "First event",
+        },
+    )
+
+    client.post(
+        f"/sites/{site['id']}/events",
+        json={
+            "event_type": "note",
+            "message": "Second event",
+        },
+    )
+
+    response = client.get(f"/sites/{site['id']}/events?sort_order=desc")
+
+    assert response.status_code == 200
+
+    events = response.json()["items"]
+    assert events[0]["message"] == "Second event"
+    assert events[1]["message"] == "First event"
+
+
+def test_list_site_events_rejects_invalid_sort_order():
+    site = create_test_site()
+
+    response = client.get(f"/sites/{site['id']}/events?sort_order=sideways")
+
+    assert response.status_code == 422
