@@ -38,6 +38,14 @@ def main():
     email = f"smoke-{uuid4()}@example.com"
     password = "strong-password-123"
 
+    status, root = request("GET", "/")
+    assert status == 200
+    assert root["name"] == "FTTH Task Tracker API"
+    assert root["version"] == "1.0.0"
+    assert root["status"] == "ok"
+    assert root["docs"] == "/docs"
+    assert root["health"] == "/health"
+
     status, health = request("GET", "/health")
     assert status == 200
     assert health["status"] == "ok"
