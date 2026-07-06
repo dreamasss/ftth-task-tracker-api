@@ -15,6 +15,11 @@ def root():
     return {"status": "ok"}
 
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
+
 @app.get("/health/db")
 def health_db():
     engine = get_engine()

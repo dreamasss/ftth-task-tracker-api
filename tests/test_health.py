@@ -13,3 +13,10 @@ def test_health_db():
     data = response.json()
     assert data["db"] == "ok"
     assert "PostgreSQL" in data["version"]
+
+
+def test_health_check():
+    response = client.get("/health")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
