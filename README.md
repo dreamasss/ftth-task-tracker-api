@@ -51,39 +51,56 @@ docker compose exec api python -m pytest -q
 
 ## API examples
 
-Create a site:
+Protected site endpoints require a Bearer token.
 
-curl -X POST http://localhost:8000/sites \
-  -H "Content-Type: application/json" \
-  -d '{"address":"Objektas A","status":"new"}'
+Set API base URL:
 
-List sites:
+    BASE_URL=http://localhost:8000
 
-curl http://localhost:8000/sites
+For the deployed API:
 
-Filter sites by status:
+    BASE_URL=https://ftth-task-tracker-api.onrender.com
 
-curl "http://localhost:8000/sites?status=blocked"
+Register and login:
 
-Get site stats:
+    EMAIL="demo+$(date +%s)@example.com"
+    PASSWORD="strong-password-123"
 
-curl http://localhost:8000/sites/stats
+    curl -X POST "$BASE_URL/auth/register" \
+      -H "Content-Type: application/json" \
+      -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}"
 
-Update site status:
+    TOKEN=$(curl -s -X POST "$BASE_URL/auth/login" \
+      -H "Content-Type: application/json" \
+      -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}" \
+      | python3 -c 'import json, sys; print(json.load(sys.stdin)["access_token"])')
 
-curl -X PATCH http://localhost:8000/sites/1 \
-  -H "Content-Type: application/json" \
-  -d '{"status":"blocked"}'
+Create and use a site:
 
-List site events:
+    SITE_ID=$(curl -s -X POST "$BASE_URL/sites" \
+      -H "Authorization: Bearer $TOKEN" \
+      -H "Content-Type: application/json" \
+      -d '{"address":"Objektas A","status":"new"}' \
+      | python3 -c 'import json, sys; print(json.load(sys.stdin)["id"])')
 
-curl http://localhost:8000/sites/1/events
+    curl "$BASE_URL/sites" \
+      -H "Authorization: Bearer $TOKEN"
 
-Add a site event:
+    curl "$BASE_URL/sites/stats" \
+      -H "Authorization: Bearer $TOKEN"
 
-curl -X POST http://localhost:8000/sites/1/events \
-  -H "Content-Type: application/json" \
-  -d '{"event_type":"issue","message":"Customer did not answer"}'
+    curl -X PATCH "$BASE_URL/sites/$SITE_ID" \
+      -H "Authorization: Bearer $TOKEN" \
+      -H "Content-Type: application/json" \
+      -d '{"status":"blocked"}'
+
+    curl -X POST "$BASE_URL/sites/$SITE_ID/events" \
+      -H "Authorization: Bearer $TOKEN" \
+      -H "Content-Type: application/json" \
+      -d '{"event_type":"issue","message":"Customer did not answer"}'
+
+    curl "$BASE_URL/sites/$SITE_ID/events" \
+      -H "Authorization: Bearer $TOKEN"
 
 ## API documentation
 
