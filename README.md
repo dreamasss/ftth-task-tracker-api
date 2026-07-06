@@ -106,16 +106,6 @@ Docker Compose runs PostgreSQL with two databases:
 
 Tests use TEST_DATABASE_URL so they do not delete development/demo data.
 
-## Environment variables
-
-Local configuration is loaded from `.env`.
-
-Create it from the example file:
-
-    cp .env.example .env
-
-The `.env` file is ignored by Git. Use `.env.example` as the public template.
-
 ## Linting
 
 Run Ruff locally:
@@ -305,7 +295,7 @@ DELETE /sites/{site_id}
 POST /sites/{site_id}/events
 ```
 
-Read endpoints such as GET /sites and GET /sites/{site_id} are public.
+Site endpoints require authentication. Users can only access their own sites and site events.
 
 ## Environment variables
 
