@@ -167,3 +167,42 @@ Run migrations on the development database:
 Run migrations against a clean test database:
 
     make migrate-test
+
+## List sites with filters and pagination
+
+The `GET /sites` endpoint supports status filtering, text search, limit/offset pagination, and validated query parameters.
+
+Example request:
+
+```bash
+curl "http://localhost:8000/sites?search=Fiber&status=new&limit=10&offset=0"
+```
+
+Example response:
+
+```json
+{
+  "total": 2,
+  "limit": 10,
+  "offset": 0,
+  "items": [
+    {
+      "id": 1,
+      "address": "Vilnius Test Search",
+      "customer_name": "Jonas Fiber",
+      "status": "new",
+      "comment": null,
+      "created_at": "2026-07-06T10:44:44.800012Z"
+    }
+  ]
+}
+```
+
+Query parameters:
+
+| Parameter | Description |
+|---|---|
+| `status` | Optional site status filter: `new`, `in_progress`, `blocked`, `done`, `reported` |
+| `search` | Optional text search by address or customer name, 1–100 characters |
+| `limit` | Number of items to return, from 1 to 100 |
+| `offset` | Number of items to skip, minimum 0 |
