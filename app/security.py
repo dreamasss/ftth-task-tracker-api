@@ -45,14 +45,16 @@ def verify_password(password: str, stored_hash: str) -> bool:
     )
 
 
-def create_access_token(user_id: int) -> str:
+def create_access_token(user_id: int, expires_in_seconds: int = 3600) -> str:
     import json
     import time
 
     secret = os.getenv("SECRET_KEY", "dev-secret-change-me")
+    now = int(time.time())
     payload = {
         "sub": str(user_id),
-        "iat": int(time.time()),
+        "iat": now,
+        "exp": now + expires_in_seconds,
     }
 
     payload_json = json.dumps(payload, separators=(",", ":"), sort_keys=True)
@@ -69,6 +71,7 @@ def create_access_token(user_id: int) -> str:
 
 def decode_access_token(token: str) -> int | None:
     import json
+    import time
 
     secret = os.getenv("SECRET_KEY", "dev-secret-change-me")
 
@@ -89,6 +92,10 @@ def decode_access_token(token: str) -> int | None:
     try:
         payload_json = b64decode(payload_b64.encode("ascii")).decode("utf-8")
         payload = json.loads(payload_json)
+
+        if int(payload["exp"]) < int(time.time()):
+            return None
+
         return int(payload["sub"])
-    except (ValueError, KeyError):
+    except (ValueError, KeyError, TypeError):
         return None

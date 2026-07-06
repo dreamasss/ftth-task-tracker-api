@@ -239,3 +239,30 @@ def test_get_current_user_rejects_invalid_token():
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid authentication token"
+
+
+def test_get_current_user_rejects_expired_token():
+    email = f"expired-token-{uuid4()}@example.com"
+
+    register_response = client.post(
+        "/auth/register",
+        json={
+            "email": email,
+            "password": "strong-password-123",
+        },
+    )
+    assert register_response.status_code == 200
+
+    user_id = register_response.json()["id"]
+
+    from app.security import create_access_token
+
+    expired_token = create_access_token(user_id, expires_in_seconds=-1)
+
+    response = client.get(
+        "/auth/me",
+        headers={"Authorization": f"Bearer {expired_token}"},
+    )
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid authentication token"
