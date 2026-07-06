@@ -44,3 +44,10 @@ migrate-test:
 	docker compose exec db sh -lc 'dropdb -U "$$POSTGRES_USER" task_tracker_test || true'
 	docker compose exec db sh -lc 'createdb -U "$$POSTGRES_USER" task_tracker_test'
 	docker compose exec api sh -lc 'DATABASE_URL="$$TEST_DATABASE_URL" alembic upgrade head'
+
+migrate-test-roundtrip:
+	docker compose exec db sh -lc 'dropdb -U "$$POSTGRES_USER" task_tracker_test || true'
+	docker compose exec db sh -lc 'createdb -U "$$POSTGRES_USER" task_tracker_test'
+	docker compose exec api sh -lc 'DATABASE_URL="$$TEST_DATABASE_URL" alembic upgrade head'
+	docker compose exec api sh -lc 'DATABASE_URL="$$TEST_DATABASE_URL" alembic downgrade base'
+	docker compose exec api sh -lc 'DATABASE_URL="$$TEST_DATABASE_URL" alembic upgrade head'

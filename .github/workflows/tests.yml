@@ -37,6 +37,14 @@ jobs:
           docker compose logs api
           exit 1
 
+      - name: Check Alembic migration roundtrip
+        run: |
+          docker compose exec -T db sh -lc 'dropdb -U "$POSTGRES_USER" task_tracker_test || true'
+          docker compose exec -T db sh -lc 'createdb -U "$POSTGRES_USER" task_tracker_test'
+          docker compose exec -T api sh -lc 'DATABASE_URL="$TEST_DATABASE_URL" alembic upgrade head'
+          docker compose exec -T api sh -lc 'DATABASE_URL="$TEST_DATABASE_URL" alembic downgrade base'
+          docker compose exec -T api sh -lc 'DATABASE_URL="$TEST_DATABASE_URL" alembic upgrade head'
+
       - name: Run Ruff lint
         run: docker compose exec -T api ruff check .
 
