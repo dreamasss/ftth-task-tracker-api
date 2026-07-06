@@ -54,3 +54,6 @@ migrate-test-roundtrip:
 
 smoke:
 	python scripts/smoke_test.py
+
+test-db:
+	docker compose exec db sh -lc 'createdb -U "$$POSTGRES_USER" task_tracker_test || true'
