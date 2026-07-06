@@ -480,3 +480,79 @@ def test_update_site_rejects_empty_body():
 
     assert update_response.status_code == 400
     assert update_response.json()["detail"] == "No fields to update"
+
+
+def test_update_site_can_clear_nullable_fields():
+    create_response = client.post(
+        "/sites",
+        json={
+            "address": f"Nullable objektas {uuid4()}",
+            "customer_name": "Laikinas klientas",
+            "status": "new",
+            "comment": "Laikinas komentaras",
+        },
+    )
+
+    assert create_response.status_code == 200
+
+    site = create_response.json()
+
+    update_response = client.patch(
+        f"/sites/{site['id']}",
+        json={
+            "customer_name": None,
+            "comment": None,
+        },
+    )
+
+    assert update_response.status_code == 200
+
+    updated_site = update_response.json()
+    assert updated_site["customer_name"] is None
+    assert updated_site["comment"] is None
+
+
+def test_update_site_rejects_null_address():
+    create_response = client.post(
+        "/sites",
+        json={
+            "address": f"Null address objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+
+    assert create_response.status_code == 200
+
+    site = create_response.json()
+
+    update_response = client.patch(
+        f"/sites/{site['id']}",
+        json={
+            "address": None,
+        },
+    )
+
+    assert update_response.status_code == 422
+
+
+def test_update_site_rejects_null_status():
+    create_response = client.post(
+        "/sites",
+        json={
+            "address": f"Null status objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+
+    assert create_response.status_code == 200
+
+    site = create_response.json()
+
+    update_response = client.patch(
+        f"/sites/{site['id']}",
+        json={
+            "status": None,
+        },
+    )
+
+    assert update_response.status_code == 422

@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 
 class SiteStatus(str, Enum):
@@ -32,6 +32,16 @@ class SiteUpdate(BaseModel):
     customer_name: str | None = None
     status: SiteStatus | None = None
     comment: str | None = None
+
+    @model_validator(mode="after")
+    def reject_null_required_fields(self):
+        if "address" in self.model_fields_set and self.address is None:
+            raise ValueError("address cannot be null")
+
+        if "status" in self.model_fields_set and self.status is None:
+            raise ValueError("status cannot be null")
+
+        return self
 
 
 class SiteRead(BaseModel):

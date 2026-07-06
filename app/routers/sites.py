@@ -140,13 +140,13 @@ def update_site(site_id: int, site_in: SiteUpdate, db: Session = Depends(get_db)
     if not update_data:
         raise HTTPException(status_code=400, detail="No fields to update")
 
-    if site_in.address is not None:
-        site.address = site_in.address
+    if "address" in update_data:
+        site.address = update_data["address"]
 
-    if site_in.customer_name is not None:
-        site.customer_name = site_in.customer_name
+    if "customer_name" in update_data:
+        site.customer_name = update_data["customer_name"]
 
-    if site_in.status is not None:
+    if "status" in update_data:
         new_status = site_in.status.value
 
         if new_status != old_status:
@@ -159,8 +159,8 @@ def update_site(site_id: int, site_in: SiteUpdate, db: Session = Depends(get_db)
             )
             db.add(event)
 
-    if site_in.comment is not None:
-        site.comment = site_in.comment
+    if "comment" in update_data:
+        site.comment = update_data["comment"]
 
     db.commit()
     db.refresh(site)
