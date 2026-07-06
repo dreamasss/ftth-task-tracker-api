@@ -1,7 +1,7 @@
 import hashlib
 import hmac
 import os
-from base64 import b64encode
+from base64 import b64decode, b64encode
 
 PBKDF2_ITERATIONS = 600_000
 
@@ -65,3 +65,30 @@ def create_access_token(user_id: int) -> str:
     ).hexdigest()
 
     return f"{payload_b64}.{signature}"
+
+
+def decode_access_token(token: str) -> int | None:
+    import json
+
+    secret = os.getenv("SECRET_KEY", "dev-secret-change-me")
+
+    try:
+        payload_b64, signature = token.rsplit(".", 1)
+    except ValueError:
+        return None
+
+    expected_signature = hmac.new(
+        secret.encode("utf-8"),
+        payload_b64.encode("ascii"),
+        hashlib.sha256,
+    ).hexdigest()
+
+    if not hmac.compare_digest(signature, expected_signature):
+        return None
+
+    try:
+        payload_json = b64decode(payload_b64.encode("ascii")).decode("utf-8")
+        payload = json.loads(payload_json)
+        return int(payload["sub"])
+    except (ValueError, KeyError):
+        return None
