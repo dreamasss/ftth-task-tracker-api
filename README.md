@@ -264,3 +264,45 @@ make migrate-test-roundtrip
 ```
 
 This command resets the test database, runs Alembic migrations up to `head`, downgrades back to `base`, and upgrades to `head` again. It is also checked in CI.
+
+## Authentication
+
+The API supports user registration, login, and Bearer token authentication.
+
+### Register
+
+```bash
+curl -X POST http://localhost:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"demo@example.com","password":"strong-password-123"}'
+```
+
+### Login
+
+```bash
+curl -X POST http://localhost:8000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"demo@example.com","password":"strong-password-123"}'
+```
+
+### Get current user
+
+```bash
+TOKEN="paste-access-token-here"
+
+curl http://localhost:8000/auth/me \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Protected write endpoints
+
+These endpoints require a Bearer token:
+
+```text
+POST /sites
+PATCH /sites/{site_id}
+DELETE /sites/{site_id}
+POST /sites/{site_id}/events
+```
+
+Read endpoints such as GET /sites and GET /sites/{site_id} are public.
