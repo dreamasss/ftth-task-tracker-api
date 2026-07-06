@@ -208,3 +208,13 @@ Query parameters:
 | `offset` | Number of items to skip, minimum 0 |
 | `sort_by` | Sort field: `id`, `address`, `status`, `created_at` |
 | `sort_order` | Sort direction: `asc` or `desc` |
+
+## Healthcheck
+
+The API exposes a database health endpoint:
+
+```bash
+curl http://localhost:8000/health/db
+```
+
+The Docker image also defines a container healthcheck that calls this endpoint.
