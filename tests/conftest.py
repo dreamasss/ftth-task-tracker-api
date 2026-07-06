@@ -56,38 +56,10 @@ def clean_tables():
 
 
 @pytest.fixture
-def auth_headers():
+def auth_headers(auth_headers_for_email):
     from uuid import uuid4
 
-    from fastapi.testclient import TestClient
-
-    from app.main import app
-
-    client = TestClient(app)
-    email = f"test-user-{uuid4()}@example.com"
-    password = "strong-password-123"
-
-    register_response = client.post(
-        "/auth/register",
-        json={
-            "email": email,
-            "password": password,
-        },
-    )
-    assert register_response.status_code == 200
-
-    login_response = client.post(
-        "/auth/login",
-        json={
-            "email": email,
-            "password": password,
-        },
-    )
-    assert login_response.status_code == 200
-
-    token = login_response.json()["access_token"]
-
-    return {"Authorization": f"Bearer {token}"}
+    return auth_headers_for_email(f"test-user-{uuid4()}@example.com")
 
 
 @pytest.fixture
