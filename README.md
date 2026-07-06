@@ -379,3 +379,22 @@ Common commands:
 - `make ci` — run linting, formatting check, and tests
 - `make smoke` — run the API smoke test against the local server
 - `make down` — stop Docker containers without deleting volumes
+
+## Deployment checklist
+
+Required environment variables:
+
+- `DATABASE_URL` — production PostgreSQL connection string
+- `SECRET_KEY` — secret used to sign access tokens
+- `PORT` — provided by the hosting platform, defaults to `8000` locally
+
+Container startup:
+
+- `scripts/start.sh` runs `alembic upgrade head`
+- then starts FastAPI with Uvicorn
+
+After deployment, verify the live API with:
+
+```bash
+BASE_URL=https://your-api-url.example.com make smoke
+```
