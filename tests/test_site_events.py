@@ -45,7 +45,7 @@ def test_create_and_list_site_events(auth_headers):
     assert event["event_type"] == "issue"
     assert event["message"] == "Klientas neatsiliepia"
 
-    list_response = client.get(f"/sites/{site['id']}/events")
+    list_response = client.get(f"/sites/{site['id']}/events", headers=auth_headers)
 
     assert list_response.status_code == 200
 
@@ -68,8 +68,8 @@ def test_create_site_event_site_not_found(auth_headers):
     assert response.json()["detail"] == "Site not found"
 
 
-def test_list_site_events_site_not_found():
-    response = client.get("/sites/999999999/events")
+def test_list_site_events_site_not_found(auth_headers):
+    response = client.get("/sites/999999999/events", headers=auth_headers)
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Site not found"
@@ -102,7 +102,7 @@ def test_status_change_creates_site_event(auth_headers):
     assert update_response.status_code == 200
     assert update_response.json()["status"] == "blocked"
 
-    events_response = client.get(f"/sites/{site['id']}/events")
+    events_response = client.get(f"/sites/{site['id']}/events", headers=auth_headers)
     assert events_response.status_code == 200
 
     events = get_event_items(events_response)
@@ -122,7 +122,7 @@ def test_same_status_does_not_create_status_change_event(auth_headers):
 
     assert update_response.status_code == 200
 
-    events_response = client.get(f"/sites/{site['id']}/events")
+    events_response = client.get(f"/sites/{site['id']}/events", headers=auth_headers)
     assert events_response.status_code == 200
     assert get_event_items(events_response) == []
 
@@ -186,7 +186,7 @@ def test_list_site_events_returns_pagination_metadata(auth_headers):
             },
         )
 
-    response = client.get(f"/sites/{site['id']}/events?limit=1&offset=0")
+    response = client.get(f"/sites/{site['id']}/events?limit=1&offset=0", headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -200,7 +200,7 @@ def test_list_site_events_returns_pagination_metadata(auth_headers):
 def test_list_site_events_rejects_invalid_limit(auth_headers):
     site = create_test_site(auth_headers)
 
-    response = client.get(f"/sites/{site['id']}/events?limit=0")
+    response = client.get(f"/sites/{site['id']}/events?limit=0", headers=auth_headers)
 
     assert response.status_code == 422
 
@@ -208,7 +208,7 @@ def test_list_site_events_rejects_invalid_limit(auth_headers):
 def test_list_site_events_rejects_negative_offset(auth_headers):
     site = create_test_site(auth_headers)
 
-    response = client.get(f"/sites/{site['id']}/events?offset=-1")
+    response = client.get(f"/sites/{site['id']}/events?offset=-1", headers=auth_headers)
 
     assert response.status_code == 422
 
@@ -234,7 +234,7 @@ def test_list_site_events_filters_by_event_type(auth_headers):
         },
     )
 
-    response = client.get(f"/sites/{site['id']}/events?event_type=issue")
+    response = client.get(f"/sites/{site['id']}/events?event_type=issue", headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -248,7 +248,7 @@ def test_list_site_events_filters_by_event_type(auth_headers):
 def test_list_site_events_rejects_invalid_event_type_filter(auth_headers):
     site = create_test_site(auth_headers)
 
-    response = client.get(f"/sites/{site['id']}/events?event_type=bad_type")
+    response = client.get(f"/sites/{site['id']}/events?event_type=bad_type", headers=auth_headers)
 
     assert response.status_code == 422
 
@@ -274,7 +274,7 @@ def test_list_site_events_sorts_descending(auth_headers):
         },
     )
 
-    response = client.get(f"/sites/{site['id']}/events?sort_order=desc")
+    response = client.get(f"/sites/{site['id']}/events?sort_order=desc", headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -286,7 +286,7 @@ def test_list_site_events_sorts_descending(auth_headers):
 def test_list_site_events_rejects_invalid_sort_order(auth_headers):
     site = create_test_site(auth_headers)
 
-    response = client.get(f"/sites/{site['id']}/events?sort_order=sideways")
+    response = client.get(f"/sites/{site['id']}/events?sort_order=sideways", headers=auth_headers)
 
     assert response.status_code == 422
 
@@ -325,3 +325,49 @@ def test_create_site_event_requires_authentication(auth_headers):
     )
 
     assert response.status_code == 401
+
+
+def make_site_event_auth_headers(email: str):
+    password = "strong-password-123"
+
+    register_response = client.post(
+        "/auth/register",
+        json={
+            "email": email,
+            "password": password,
+        },
+    )
+    assert register_response.status_code == 200
+
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": email,
+            "password": password,
+        },
+    )
+    assert login_response.status_code == 200
+
+    token = login_response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+def test_list_site_events_hides_other_users_site():
+    user_a_headers = make_site_event_auth_headers(f"events-owner-a-{uuid4()}@example.com")
+    user_b_headers = make_site_event_auth_headers(f"events-owner-b-{uuid4()}@example.com")
+
+    create_response = client.post(
+        "/sites",
+        headers=user_a_headers,
+        json={
+            "address": f"Private events objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+    assert create_response.status_code == 200
+
+    site_id = create_response.json()["id"]
+
+    response = client.get(f"/sites/{site_id}/events", headers=user_b_headers)
+
+    assert response.status_code == 404

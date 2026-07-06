@@ -202,10 +202,7 @@ def create_site_event(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    site = db.get(Site, site_id)
-
-    if site is None:
-        raise HTTPException(status_code=404, detail="Site not found")
+    site = get_user_site_or_404(db, site_id, current_user.id)
 
     event = SiteEvent(
         site_id=site_id,
@@ -230,11 +227,9 @@ def list_site_events(
     offset: int = Query(default=0, ge=0),
     sort_order: Literal["asc", "desc"] = Query(default="asc"),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    site = db.get(Site, site_id)
-
-    if site is None:
-        raise HTTPException(status_code=404, detail="Site not found")
+    get_user_site_or_404(db, site_id, current_user.id)
 
     query = select(SiteEvent).where(SiteEvent.site_id == site_id)
 
