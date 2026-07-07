@@ -98,6 +98,47 @@ def main():
     assert status == 200
     assert sites["total"] >= 1
 
+    sort_marker = f"smoke-sort-{uuid4().hex}"
+
+    status, early_site = request(
+        "POST",
+        "/sites",
+        {
+            "address": f"{sort_marker}-early",
+            "status": "new",
+            "priority": "medium",
+            "planned_date": "2026-07-01",
+            "comment": "Created by smoke test for planned date sorting",
+        },
+        token,
+    )
+    assert status == 200
+
+    status, late_site = request(
+        "POST",
+        "/sites",
+        {
+            "address": f"{sort_marker}-late",
+            "status": "new",
+            "priority": "medium",
+            "planned_date": "2026-08-01",
+            "comment": "Created by smoke test for planned date sorting",
+        },
+        token,
+    )
+    assert status == 200
+
+    status, sorted_sites = request(
+        "GET",
+        f"/sites?search={sort_marker}&sort_by=planned_date&sort_order=asc",
+        token=token,
+    )
+    assert status == 200
+    assert [item["id"] for item in sorted_sites["items"]] == [
+        early_site["id"],
+        late_site["id"],
+    ]
+
     status, _event = request(
         "POST",
         f"/sites/{site_id}/events",
