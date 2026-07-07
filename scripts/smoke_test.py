@@ -24,7 +24,7 @@ def request(method, path, data=None, token=None):
     req = Request(f"{BASE_URL}{path}", data=body, headers=headers, method=method)
 
     try:
-        with urlopen(req, timeout=10) as response:
+        with urlopen(req, timeout=30) as response:
             raw = response.read().decode("utf-8")
             return response.status, json.loads(raw) if raw else {}
     except HTTPError as error:
