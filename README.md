@@ -4,6 +4,43 @@
 
 Small FastAPI + PostgreSQL backend for tracking FTTH/telecom work sites, statuses, and site history events.
 
+## Portfolio summary
+
+FTTH Task Tracker API is a deployed FastAPI backend project for tracking telecom/FTTH work sites, statuses, planning dates, and site history events.
+
+### Quick links
+
+- Frontend demo: https://ftth-task-tracker-api.onrender.com/demo/
+- Swagger docs: https://ftth-task-tracker-api.onrender.com/docs
+- Live API: https://ftth-task-tracker-api.onrender.com
+- Health check: https://ftth-task-tracker-api.onrender.com/health
+
+### What this project proves
+
+- FastAPI backend design with explicit request and response schemas
+- PostgreSQL persistence with SQLAlchemy and Alembic migrations
+- JWT/Bearer token authentication
+- User-owned resources and access isolation
+- CRUD endpoints with filtering, sorting, pagination, and stats
+- Site event/history tracking
+- Dockerized local development
+- Pytest test coverage and smoke tests
+- Production deployment on Render with Neon PostgreSQL
+- Minimal frontend demo served by the API container
+
+### Quick start
+
+```bash
+docker compose up -d --build
+docker compose exec api python -m pytest -q
+make smoke
+```
+
+Open locally:
+
+- Swagger docs: http://localhost:8000/docs
+- Frontend demo: http://localhost:8000/demo/
+
 ## Current features
 
 - Create, list, get, update, and delete sites
@@ -41,11 +78,14 @@ Small FastAPI + PostgreSQL backend for tracking FTTH/telecom work sites, statuse
 
 ## Site event types
 
+User-created event types:
+
 - note
 - issue
+
+Automatic event type:
+
 - status_change
-- measurement
-- customer
 
 ## Run locally
 
