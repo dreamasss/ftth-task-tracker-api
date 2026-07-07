@@ -23,14 +23,19 @@
     <p class="muted">Minimal frontend demo for the FastAPI backend.</p>
 
     <section>
-      <h2>Auth</h2>
-      <input id="email" value="demo@example.com" placeholder="Email">
-      <input id="password" value="strong-password-123" type="password" placeholder="Password">
-      <button onclick="registerUser()">Register</button>
-      <button onclick="loginUser()">Login</button>
-      <button onclick="logoutUser()">Logout</button>
-      <p id="me" class="muted">Not logged in</p>
-    </section>
+  <h2>Auth</h2>
+  <p class="muted">Use the generated email and click Create demo account. Registration logs you in automatically.</p>
+
+  <input id="email" placeholder="Email">
+  <button onclick="generateDemoEmail()">New demo email</button>
+  <input id="password" value="strong-password-123" type="password" placeholder="Password">
+
+  <button onclick="registerUser()">Create demo account</button>
+  <button onclick="loginUser()">Login existing</button>
+  <button onclick="logoutUser()">Logout / clear token</button>
+
+  <p id="me" class="muted">Not logged in</p>
+</section>
 
     <section>
       <h2>Create site</h2>
@@ -79,11 +84,14 @@
 
     const el = (id) => document.getElementById(id);
 
-    function show(data) {
-      el("output").textContent = typeof data === "string"
-        ? data
-        : JSON.stringify(data, null, 2);
-    }
+    function show(data, isError = false) {
+  el("output").textContent = typeof data === "string"
+    ? data
+    : JSON.stringify(data, null, 2);
+
+  el("output").style.background = isError ? "#fef2f2" : "#ecfdf5";
+  el("output").style.color = isError ? "#991b1b" : "#065f46";
+}
 
     async function api(path, options = {}) {
       const headers = options.headers || {};
@@ -117,6 +125,9 @@
       return body;
     }
 
+function generateDemoEmail() {
+  el("email").value = `demo+${Date.now()}@example.com`;
+}
     async function registerUser() {
       try {
         const data = await api("/auth/register", {
@@ -126,9 +137,10 @@
             password: el("password").value
           })
         });
-        show(data);
+        show("Registered successfully. Logging in...");
+await loginUser();
       } catch (err) {
-        show(err.message);
+        show(err.message, true);
       }
     }
 
@@ -149,7 +161,7 @@
         await loadSites();
         show("Logged in");
       } catch (err) {
-        show(err.message);
+        show(err.message, true);
       }
     }
 
@@ -190,7 +202,7 @@
         show(data);
         await loadSites();
       } catch (err) {
-        show(err.message);
+        show(err.message, true);
       }
     }
 
@@ -237,7 +249,7 @@
           </table>
         `;
       } catch (err) {
-        show(err.message);
+        show(err.message, true);
       }
     }
     function selectSite(id) {
@@ -259,7 +271,7 @@
           await loadEvents();
         }
       } catch (err) {
-        show(err.message);
+        show(err.message, true);
       }
     }
 
@@ -278,7 +290,7 @@
 
         await loadSites();
       } catch (err) {
-        show(err.message);
+        show(err.message, true);
       }
     }
 
@@ -302,7 +314,7 @@
         show(data);
         await loadEvents();
       } catch (err) {
-        show(err.message);
+        show(err.message, true);
       }
     }
 
@@ -347,13 +359,17 @@
           </table>
         `;
       } catch (err) {
-        show(err.message);
+        show(err.message, true);
       }
     }
-    loadMe();
-    if (token) {
-      loadSites();
-    }
+    if (!el("email").value) {
+  generateDemoEmail();
+}
+
+loadMe();
+if (token) {
+  loadSites();
+}
   </script>
 </body>
 </html>
