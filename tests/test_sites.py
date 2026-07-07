@@ -1053,3 +1053,57 @@ def test_create_site_rejects_invalid_planned_date(auth_headers):
     )
 
     assert response.status_code == 422
+
+
+def test_list_sites_filters_by_planned_date_range(auth_headers):
+    before_address = f"Before planned range {uuid4()}"
+    inside_address = f"Inside planned range {uuid4()}"
+    after_address = f"After planned range {uuid4()}"
+
+    client.post(
+        "/sites",
+        headers=auth_headers,
+        json={
+            "address": before_address,
+            "status": "new",
+            "planned_date": "2026-07-01",
+        },
+    )
+
+    client.post(
+        "/sites",
+        headers=auth_headers,
+        json={
+            "address": inside_address,
+            "status": "new",
+            "planned_date": "2026-07-15",
+        },
+    )
+
+    client.post(
+        "/sites",
+        headers=auth_headers,
+        json={
+            "address": after_address,
+            "status": "new",
+            "planned_date": "2026-08-01",
+        },
+    )
+
+    response = client.get(
+        "/sites?planned_after=2026-07-10&planned_before=2026-07-20",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+
+    sites = get_site_items(response)
+    assert len(sites) == 1
+    assert sites[0]["address"] == inside_address
+    assert sites[0]["planned_date"] == "2026-07-15"
+
+
+def test_list_sites_rejects_invalid_planned_date_filter(auth_headers):
+    response = client.get("/sites?planned_after=not-a-date", headers=auth_headers)
+
+    assert response.status_code == 422

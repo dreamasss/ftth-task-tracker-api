@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -88,6 +88,8 @@ def create_site(site_in: SiteCreate, db: Session = Depends(get_db), current_user
 def list_sites(
     status: SiteStatus | None = None,
     priority: SitePriority | None = None,
+    planned_after: date | None = None,
+    planned_before: date | None = None,
     search: str | None = Query(default=None, min_length=1, max_length=100),
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
@@ -103,6 +105,12 @@ def list_sites(
 
     if priority is not None:
         query = query.where(Site.priority == priority.value)
+
+    if planned_after is not None:
+        query = query.where(Site.planned_date >= planned_after)
+
+    if planned_before is not None:
+        query = query.where(Site.planned_date <= planned_before)
 
     if search:
         pattern = f"%{search}%"
