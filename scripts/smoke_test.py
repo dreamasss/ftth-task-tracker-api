@@ -83,7 +83,13 @@ def main():
     site_id = site["id"]
     assert site["priority"] == "high"
     assert site["planned_date"] == "2026-07-15"
-
+    status, planned_sites = request(
+        "GET",
+        "/sites?planned_after=2026-07-01&planned_before=2026-07-31",
+        token=token,
+    )
+    assert status == 200
+    assert any(item["id"] == site_id for item in planned_sites["items"])
     status, priority_sites = request("GET", "/sites?priority=high", token=token)
     assert status == 200
     assert any(item["id"] == site_id for item in priority_sites["items"])
