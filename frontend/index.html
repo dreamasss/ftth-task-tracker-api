@@ -57,6 +57,19 @@
       <div id="sites"></div>
     </section>
 
+    <section>
+      <h2>Events</h2>
+      <input id="siteId" placeholder="Selected site ID">
+      <select id="eventType">
+         <option value="note">note</option>
+         <option value="issue">issue</option>
+      </select>
+      <input id="eventMessage" value="Signal level checked" placeholder="Event message">
+      <button onclick="addEvent()">Add event</button>
+      <button onclick="loadEvents()">Load events</button>
+      <div id="events"></div>
+    </section>
+
     <h2>Output</h2>
     <pre id="output"></pre>
   </main>
@@ -85,10 +98,20 @@
 
       const response = await fetch(path, { ...options, headers });
       const text = await response.text();
-      const body = text ? JSON.parse(text) : null;
+
+      let body = null;
+
+      if (text) {
+        try {
+          body = JSON.parse(text);
+        } catch {
+          body = text;
+        }
+      }
 
       if (!response.ok) {
-        throw new Error(body && body.detail ? body.detail : response.statusText);
+        const detail = body && body.detail ? body.detail : body;
+        throw new Error(detail || response.statusText);
       }
 
       return body;
@@ -191,6 +214,7 @@
                 <th>Customer</th>
                 <th>Status</th>
                 <th>Priority</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -201,6 +225,12 @@
                   <td>${site.customer_name || ""}</td>
                   <td>${site.status}</td>
                   <td>${site.priority || ""}</td>
+                  <td>
+                    <button onclick="selectSite(${site.id})">Select</button>
+                    <button onclick="updateSite(${site.id}, 'blocked')">Block</button>
+                    <button onclick="updateSite(${site.id}, 'done')">Done</button>
+                    <button onclick="deleteSite(${site.id})">Delete</button>
+                  </td>
                 </tr>
               `).join("")}
             </tbody>
@@ -210,7 +240,116 @@
         show(err.message);
       }
     }
+    function selectSite(id) {
+      el("siteId").value = id;
+      loadEvents();
+    }
 
+    async function updateSite(id, status) {
+      try {
+        const data = await api(`/sites/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ status })
+        });
+
+        show(data);
+        await loadSites();
+
+        if (String(el("siteId").value) === String(id)) {
+          await loadEvents();
+        }
+      } catch (err) {
+        show(err.message);
+      }
+    }
+
+    async function deleteSite(id) {
+      try {
+        const data = await api(`/sites/${id}`, {
+          method: "DELETE"
+        });
+
+        show(data);
+
+        if (String(el("siteId").value) === String(id)) {
+          el("siteId").value = "";
+          el("events").innerHTML = "";
+        }
+
+        await loadSites();
+      } catch (err) {
+        show(err.message);
+      }
+    }
+
+    async function addEvent() {
+      try {
+        const siteId = el("siteId").value;
+
+        if (!siteId) {
+          show("Select a site first");
+          return;
+        }
+
+        const data = await api(`/sites/${siteId}/events`, {
+          method: "POST",
+          body: JSON.stringify({
+            event_type: el("eventType").value,
+            message: el("eventMessage").value
+          })
+        });
+
+        show(data);
+        await loadEvents();
+      } catch (err) {
+        show(err.message);
+      }
+    }
+
+    async function loadEvents() {
+      try {
+        const siteId = el("siteId").value;
+
+        if (!siteId) {
+          show("Select a site first");
+          return;
+        }
+
+        const data = await api(`/sites/${siteId}/events?limit=20&offset=0&sort_order=desc`);
+        show(data);
+
+        if (!data.items.length) {
+          el("events").innerHTML = "<p class='muted'>No events yet.</p>";
+          return;
+        }
+
+        el("events").innerHTML = `
+          <p class="muted">Total events: ${data.total}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Type</th>
+                <th>Message</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.items.map(event => `
+                <tr>
+                  <td>${event.id}</td>
+                  <td>${event.event_type}</td>
+                  <td>${event.message}</td>
+                  <td>${event.created_at}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+      } catch (err) {
+        show(err.message);
+      }
+    }
     loadMe();
     if (token) {
       loadSites();
