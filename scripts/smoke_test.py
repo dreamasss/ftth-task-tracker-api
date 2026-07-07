@@ -73,6 +73,7 @@ def main():
             "address": f"Smoke test site {uuid4()}",
             "status": "new",
             "priority": "high",
+            "planned_date": "2026-07-15",
             "comment": "Created by smoke test",
         },
         token,
@@ -81,6 +82,7 @@ def main():
 
     site_id = site["id"]
     assert site["priority"] == "high"
+    assert site["planned_date"] == "2026-07-15"
 
     status, priority_sites = request("GET", "/sites?priority=high", token=token)
     assert status == 200
