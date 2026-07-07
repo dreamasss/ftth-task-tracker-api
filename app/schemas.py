@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from enum import Enum
 
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -31,6 +31,7 @@ class SiteCreate(BaseModel):
     customer_name: str | None = Field(default=None, min_length=1, max_length=200)
     status: SiteStatus = SiteStatus.new
     priority: SitePriority = SitePriority.medium
+    planned_date: date | None = None
     comment: str | None = Field(default=None, min_length=1, max_length=2000)
 
     @field_validator("address", "customer_name", "comment", mode="before")
@@ -46,6 +47,7 @@ class SiteUpdate(BaseModel):
     address: str | None = Field(default=None, min_length=1, max_length=255)
     customer_name: str | None = Field(default=None, min_length=1, max_length=200)
     status: SiteStatus | None = None
+    planned_date: date | None = None
     priority: SitePriority | None = None
     comment: str | None = Field(default=None, min_length=1, max_length=2000)
 
@@ -78,6 +80,7 @@ class SiteRead(BaseModel):
     customer_name: str | None = None
     status: SiteStatus
     priority: SitePriority
+    planned_date: date | None = None
     comment: str | None = None
     created_at: datetime
     updated_at: datetime

@@ -48,6 +48,7 @@ def site_to_dict(site: Site):
         "customer_name": site.customer_name,
         "status": site.status,
         "priority": site.priority,
+        "planned_date": site.planned_date,
         "comment": site.comment,
         "created_at": site.created_at,
         "updated_at": site.updated_at,
@@ -72,6 +73,7 @@ def create_site(site_in: SiteCreate, db: Session = Depends(get_db), current_user
         customer_name=site_in.customer_name,
         status=site_in.status.value,
         priority=site_in.priority.value,
+        planned_date=site_in.planned_date,
         comment=site_in.comment,
     )
 
@@ -190,6 +192,9 @@ def update_site(
 
     if "priority" in update_data:
         site.priority = site_in.priority.value
+
+    if "planned_date" in update_data:
+        site.planned_date = update_data["planned_date"]
 
     if "comment" in update_data:
         site.comment = update_data["comment"]

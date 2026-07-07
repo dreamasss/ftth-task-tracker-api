@@ -996,3 +996,60 @@ def test_create_site_rejects_invalid_priority(auth_headers):
     )
 
     assert response.status_code == 422
+
+
+def test_create_site_with_planned_date(auth_headers):
+    response = client.post(
+        "/sites",
+        headers=auth_headers,
+        json={
+            "address": f"Planned date objektas {uuid4()}",
+            "status": "new",
+            "priority": "medium",
+            "planned_date": "2026-07-15",
+        },
+    )
+
+    assert response.status_code == 200
+
+    site = response.json()
+    assert site["planned_date"] == "2026-07-15"
+
+
+def test_update_site_planned_date(auth_headers):
+    create_response = client.post(
+        "/sites",
+        headers=auth_headers,
+        json={
+            "address": f"Update planned date objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+    assert create_response.status_code == 200
+
+    created = create_response.json()
+
+    update_response = client.patch(
+        f"/sites/{created['id']}",
+        headers=auth_headers,
+        json={"planned_date": "2026-08-01"},
+    )
+
+    assert update_response.status_code == 200
+
+    updated = update_response.json()
+    assert updated["planned_date"] == "2026-08-01"
+
+
+def test_create_site_rejects_invalid_planned_date(auth_headers):
+    response = client.post(
+        "/sites",
+        headers=auth_headers,
+        json={
+            "address": f"Invalid planned date objektas {uuid4()}",
+            "status": "new",
+            "planned_date": "not-a-date",
+        },
+    )
+
+    assert response.status_code == 422
