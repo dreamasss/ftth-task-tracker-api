@@ -1107,3 +1107,40 @@ def test_list_sites_rejects_invalid_planned_date_filter(auth_headers):
     response = client.get("/sites?planned_after=not-a-date", headers=auth_headers)
 
     assert response.status_code == 422
+
+
+def test_list_sites_sorts_by_planned_date(auth_headers):
+    early_address = f"Early planned sort {uuid4()}"
+    late_address = f"Late planned sort {uuid4()}"
+
+    client.post(
+        "/sites",
+        headers=auth_headers,
+        json={
+            "address": late_address,
+            "status": "new",
+            "planned_date": "2026-08-01",
+        },
+    )
+
+    client.post(
+        "/sites",
+        headers=auth_headers,
+        json={
+            "address": early_address,
+            "status": "new",
+            "planned_date": "2026-07-01",
+        },
+    )
+
+    response = client.get(
+        "/sites?planned_after=2026-07-01&planned_before=2026-08-01&sort_by=planned_date&sort_order=asc",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+
+    sites = get_site_items(response)
+    assert len(sites) == 2
+    assert sites[0]["address"] == early_address
+    assert sites[1]["address"] == late_address

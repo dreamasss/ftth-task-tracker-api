@@ -93,7 +93,7 @@ def list_sites(
     search: str | None = Query(default=None, min_length=1, max_length=100),
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
-    sort_by: Literal["id", "address", "status", "priority", "created_at"] = Query(default="id"),
+    sort_by: Literal["id", "address", "status", "priority", "planned_date", "created_at"] = Query(default="id"),
     sort_order: Literal["asc", "desc"] = Query(default="asc"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -128,6 +128,7 @@ def list_sites(
         "address": Site.address,
         "status": Site.status,
         "priority": Site.priority,
+        "planned_date": Site.planned_date,
         "created_at": Site.created_at,
     }
     sort_column = sort_columns[sort_by]
