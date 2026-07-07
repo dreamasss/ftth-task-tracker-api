@@ -1144,3 +1144,54 @@ def test_list_sites_sorts_by_planned_date(auth_headers):
     assert len(sites) == 2
     assert sites[0]["address"] == early_address
     assert sites[1]["address"] == late_address
+
+
+def test_get_sites_stats_includes_priority_and_planning_counts(auth_headers):
+    client.post(
+        "/sites",
+        headers=auth_headers,
+        json={
+            "address": f"High planned stats {uuid4()}",
+            "status": "blocked",
+            "priority": "high",
+            "planned_date": "2026-07-01",
+        },
+    )
+
+    client.post(
+        "/sites",
+        headers=auth_headers,
+        json={
+            "address": f"Low unplanned stats {uuid4()}",
+            "status": "done",
+            "priority": "low",
+        },
+    )
+
+    client.post(
+        "/sites",
+        headers=auth_headers,
+        json={
+            "address": f"Medium planned stats {uuid4()}",
+            "status": "done",
+            "priority": "medium",
+            "planned_date": "2026-08-01",
+        },
+    )
+
+    response = client.get("/sites/stats", headers=auth_headers)
+
+    assert response.status_code == 200
+
+    stats = response.json()
+    assert stats["total"] == 3
+
+    assert stats["blocked"] == 1
+    assert stats["done"] == 2
+
+    assert stats["priority_low"] == 1
+    assert stats["priority_medium"] == 1
+    assert stats["priority_high"] == 1
+
+    assert stats["planned"] == 2
+    assert stats["unplanned"] == 1

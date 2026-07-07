@@ -148,14 +148,38 @@ def list_sites(
 def get_sites_stats(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     stats = {status.value: 0 for status in SiteStatus}
 
-    rows = db.execute(
+    for priority in SitePriority:
+        stats[f"priority_{priority.value}"] = 0
+
+    status_rows = db.execute(
         select(Site.status, func.count(Site.id)).where(Site.user_id == current_user.id).group_by(Site.status)
     ).all()
 
-    for status, count in rows:
+    for status, count in status_rows:
         stats[status] = count
 
-    stats["total"] = sum(stats.values())
+    priority_rows = db.execute(
+        select(Site.priority, func.count(Site.id)).where(Site.user_id == current_user.id).group_by(Site.priority)
+    ).all()
+
+    for priority, count in priority_rows:
+        stats[f"priority_{priority}"] = count
+
+    stats["planned"] = db.execute(
+        select(func.count(Site.id)).where(
+            Site.user_id == current_user.id,
+            Site.planned_date.is_not(None),
+        )
+    ).scalar_one()
+
+    stats["unplanned"] = db.execute(
+        select(func.count(Site.id)).where(
+            Site.user_id == current_user.id,
+            Site.planned_date.is_(None),
+        )
+    ).scalar_one()
+
+    stats["total"] = sum(stats[status.value] for status in SiteStatus)
 
     return stats
 

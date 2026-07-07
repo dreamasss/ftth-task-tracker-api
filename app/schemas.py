@@ -133,6 +133,11 @@ class SiteStatsResponse(BaseModel):
     blocked: int
     done: int
     reported: int
+    priority_low: int
+    priority_medium: int
+    priority_high: int
+    planned: int
+    unplanned: int
 
 
 class UserCreate(BaseModel):
