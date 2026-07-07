@@ -456,3 +456,13 @@ Sites can be filtered by planned date:
 
     curl "$BASE_URL/sites?planned_after=2026-07-01&planned_before=2026-08-01" \
       -H "Authorization: Bearer $TOKEN"
+
+## Planned date sorting
+
+Sites can be sorted by planned date:
+
+    curl "$BASE_URL/sites?sort_by=planned_date&sort_order=asc" \
+      -H "Authorization: Bearer $TOKEN"
+
+    curl "$BASE_URL/sites?sort_by=planned_date&sort_order=desc" \
+      -H "Authorization: Bearer $TOKEN"
