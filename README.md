@@ -466,3 +466,21 @@ Sites can be sorted by planned date:
 
     curl "$BASE_URL/sites?sort_by=planned_date&sort_order=desc" \
       -H "Authorization: Bearer $TOKEN"
+
+## Expanded site stats
+
+The `GET /sites/stats` endpoint returns status counts, priority counts, and planning counts:
+
+    {
+      "total": 3,
+      "new": 0,
+      "in_progress": 0,
+      "blocked": 1,
+      "done": 2,
+      "reported": 0,
+      "priority_low": 1,
+      "priority_medium": 1,
+      "priority_high": 1,
+      "planned": 2,
+      "unplanned": 1
+    }
