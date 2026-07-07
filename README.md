@@ -443,3 +443,16 @@ Example protected flow:
 ```text
 Register user -> Login -> Authorize -> Create site -> Add event -> List site events
 ```
+
+## Planned date filters
+
+Sites can be filtered by planned date:
+
+    curl "$BASE_URL/sites?planned_after=2026-07-01" \
+      -H "Authorization: Bearer $TOKEN"
+
+    curl "$BASE_URL/sites?planned_before=2026-08-01" \
+      -H "Authorization: Bearer $TOKEN"
+
+    curl "$BASE_URL/sites?planned_after=2026-07-01&planned_before=2026-08-01" \
+      -H "Authorization: Bearer $TOKEN"
