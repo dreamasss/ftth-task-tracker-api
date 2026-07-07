@@ -12,6 +12,12 @@ class SiteStatus(str, Enum):
     reported = "reported"
 
 
+class SitePriority(str, Enum):
+    low = "low"
+    medium = "medium"
+    high = "high"
+
+
 class SiteEventType(str, Enum):
     note = "note"
     issue = "issue"
@@ -24,6 +30,7 @@ class SiteCreate(BaseModel):
     address: str = Field(min_length=1, max_length=255)
     customer_name: str | None = Field(default=None, min_length=1, max_length=200)
     status: SiteStatus = SiteStatus.new
+    priority: SitePriority = SitePriority.medium
     comment: str | None = Field(default=None, min_length=1, max_length=2000)
 
     @field_validator("address", "customer_name", "comment", mode="before")
@@ -39,6 +46,7 @@ class SiteUpdate(BaseModel):
     address: str | None = Field(default=None, min_length=1, max_length=255)
     customer_name: str | None = Field(default=None, min_length=1, max_length=200)
     status: SiteStatus | None = None
+    priority: SitePriority | None = None
     comment: str | None = Field(default=None, min_length=1, max_length=2000)
 
     @field_validator("address", "customer_name", "comment", mode="before")
@@ -57,6 +65,9 @@ class SiteUpdate(BaseModel):
         if "status" in self.model_fields_set and self.status is None:
             raise ValueError("status cannot be null")
 
+        if "priority" in self.model_fields_set and self.priority is None:
+            raise ValueError("priority cannot be null")
+
         return self
 
 
@@ -66,6 +77,7 @@ class SiteRead(BaseModel):
     address: str
     customer_name: str | None = None
     status: SiteStatus
+    priority: SitePriority
     comment: str | None = None
     created_at: datetime
     updated_at: datetime

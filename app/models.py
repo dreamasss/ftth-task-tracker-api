@@ -39,6 +39,10 @@ class Site(Base):
             "status IN ('new', 'in_progress', 'blocked', 'done', 'reported')",
             name="ck_sites_status_valid",
         ),
+        CheckConstraint(
+            "priority IN ('low', 'medium', 'high')",
+            name="ck_sites_priority_valid",
+        ),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -50,6 +54,7 @@ class Site(Base):
     address: Mapped[str] = mapped_column(String(255), nullable=False)
     customer_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
     status: Mapped[str] = mapped_column(String(50), default="new", nullable=False)
+    priority: Mapped[str] = mapped_column(String(20), default="medium", nullable=False)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped["DateTime"] = mapped_column(

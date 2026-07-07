@@ -45,3 +45,19 @@ def test_database_rejects_invalid_site_event_type():
             db.commit()
 
         db.rollback()
+
+
+def test_database_rejects_invalid_site_priority():
+    with SessionLocal() as db:
+        site = Site(
+            address=f"Invalid priority objektas {uuid4()}",
+            status="new",
+            priority="bad_priority",
+        )
+
+        db.add(site)
+
+        with pytest.raises(IntegrityError):
+            db.commit()
+
+        db.rollback()

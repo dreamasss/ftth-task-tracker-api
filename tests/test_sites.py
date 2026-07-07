@@ -888,3 +888,111 @@ def test_delete_site_hides_other_users_site(auth_headers_for_email):
     response = client.delete(f"/sites/{site_id}", headers=user_b_headers)
 
     assert response.status_code == 404
+
+
+def test_create_site_defaults_priority_to_medium(auth_headers):
+    response = client.post(
+        "/sites",
+        headers=auth_headers,
+        json={
+            "address": f"Default priority objektas {uuid4()}",
+            "status": "new",
+        },
+    )
+
+    assert response.status_code == 200
+
+    site = response.json()
+    assert site["priority"] == "medium"
+
+
+def test_create_site_accepts_high_priority(auth_headers):
+    response = client.post(
+        "/sites",
+        headers=auth_headers,
+        json={
+            "address": f"High priority objektas {uuid4()}",
+            "status": "new",
+            "priority": "high",
+        },
+    )
+
+    assert response.status_code == 200
+
+    site = response.json()
+    assert site["priority"] == "high"
+
+
+def test_update_site_priority(auth_headers):
+    create_response = client.post(
+        "/sites",
+        headers=auth_headers,
+        json={
+            "address": f"Priority update objektas {uuid4()}",
+            "status": "new",
+            "priority": "medium",
+        },
+    )
+    assert create_response.status_code == 200
+
+    created = create_response.json()
+
+    update_response = client.patch(
+        f"/sites/{created['id']}",
+        headers=auth_headers,
+        json={"priority": "low"},
+    )
+
+    assert update_response.status_code == 200
+
+    updated = update_response.json()
+    assert updated["id"] == created["id"]
+    assert updated["priority"] == "low"
+
+
+def test_list_sites_filters_by_priority(auth_headers):
+    high_address = f"High priority filter {uuid4()}"
+    low_address = f"Low priority filter {uuid4()}"
+
+    client.post(
+        "/sites",
+        headers=auth_headers,
+        json={
+            "address": high_address,
+            "status": "new",
+            "priority": "high",
+        },
+    )
+
+    client.post(
+        "/sites",
+        headers=auth_headers,
+        json={
+            "address": low_address,
+            "status": "new",
+            "priority": "low",
+        },
+    )
+
+    response = client.get("/sites?priority=high", headers=auth_headers)
+
+    assert response.status_code == 200
+
+    sites = get_site_items(response)
+    assert len(sites) == 1
+    assert sites[0]["priority"] == "high"
+    assert sites[0]["address"] == high_address
+
+
+def test_create_site_rejects_invalid_priority(auth_headers):
+    response = client.post(
+        "/sites",
+        headers=auth_headers,
+        json={
+            "address": f"Invalid priority objektas {uuid4()}",
+            "status": "new",
+            "priority": "grybas",
+        },
+    )
+
+    assert response.status_code == 422

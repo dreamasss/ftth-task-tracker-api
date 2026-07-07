@@ -16,6 +16,7 @@ from app.schemas import (
     SiteEventRead,
     SiteEventType,
     SiteListResponse,
+    SitePriority,
     SiteRead,
     SiteStatsResponse,
     SiteStatus,
@@ -46,6 +47,7 @@ def site_to_dict(site: Site):
         "address": site.address,
         "customer_name": site.customer_name,
         "status": site.status,
+        "priority": site.priority,
         "comment": site.comment,
         "created_at": site.created_at,
         "updated_at": site.updated_at,
@@ -69,6 +71,7 @@ def create_site(site_in: SiteCreate, db: Session = Depends(get_db), current_user
         address=site_in.address,
         customer_name=site_in.customer_name,
         status=site_in.status.value,
+        priority=site_in.priority.value,
         comment=site_in.comment,
     )
 
@@ -82,10 +85,11 @@ def create_site(site_in: SiteCreate, db: Session = Depends(get_db), current_user
 @router.get("", response_model=SiteListResponse)
 def list_sites(
     status: SiteStatus | None = None,
+    priority: SitePriority | None = None,
     search: str | None = Query(default=None, min_length=1, max_length=100),
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
-    sort_by: Literal["id", "address", "status", "created_at"] = Query(default="id"),
+    sort_by: Literal["id", "address", "status", "priority", "created_at"] = Query(default="id"),
     sort_order: Literal["asc", "desc"] = Query(default="asc"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -94,6 +98,9 @@ def list_sites(
 
     if status is not None:
         query = query.where(Site.status == status.value)
+
+    if priority is not None:
+        query = query.where(Site.priority == priority.value)
 
     if search:
         pattern = f"%{search}%"
@@ -110,6 +117,7 @@ def list_sites(
         "id": Site.id,
         "address": Site.address,
         "status": Site.status,
+        "priority": Site.priority,
         "created_at": Site.created_at,
     }
     sort_column = sort_columns[sort_by]
@@ -179,6 +187,9 @@ def update_site(
                 message=f"Status changed from {old_status} to {new_status}",
             )
             db.add(event)
+
+    if "priority" in update_data:
+        site.priority = site_in.priority.value
 
     if "comment" in update_data:
         site.comment = update_data["comment"]
