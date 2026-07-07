@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>FTTH Task Tracker Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; color: #111827; }
+    main { max-width: 900px; margin: 0 auto; padding: 24px; }
+    section { background: white; border: 1px solid #d1d5db; border-radius: 10px; padding: 16px; margin: 16px 0; }
+    input, select, button { padding: 8px; margin: 4px; }
+    button { cursor: pointer; }
+    pre { background: #111827; color: #f9fafb; padding: 12px; border-radius: 8px; white-space: pre-wrap; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border: 1px solid #d1d5db; padding: 8px; text-align: left; }
+    th { background: #f3f4f6; }
+    .muted { color: #6b7280; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>FTTH Task Tracker Demo</h1>
+    <p class="muted">Minimal frontend demo for the FastAPI backend.</p>
+
+    <section>
+      <h2>Auth</h2>
+      <input id="email" value="demo@example.com" placeholder="Email">
+      <input id="password" value="strong-password-123" type="password" placeholder="Password">
+      <button onclick="registerUser()">Register</button>
+      <button onclick="loginUser()">Login</button>
+      <button onclick="logoutUser()">Logout</button>
+      <p id="me" class="muted">Not logged in</p>
+    </section>
+
+    <section>
+      <h2>Create site</h2>
+      <input id="address" value="Objektas A" placeholder="Address">
+      <input id="customerName" placeholder="Customer name">
+      <select id="status">
+        <option value="new">new</option>
+        <option value="in_progress">in_progress</option>
+        <option value="blocked">blocked</option>
+        <option value="done">done</option>
+        <option value="reported">reported</option>
+      </select>
+      <select id="priority">
+        <option value="low">low</option>
+        <option value="medium" selected>medium</option>
+        <option value="high">high</option>
+      </select>
+      <button onclick="createSite()">Create site</button>
+    </section>
+
+    <section>
+      <h2>Sites</h2>
+      <button onclick="loadSites()">Load sites</button>
+      <div id="sites"></div>
+    </section>
+
+    <h2>Output</h2>
+    <pre id="output"></pre>
+  </main>
+
+  <script>
+    let token = localStorage.getItem("token") || "";
+
+    const el = (id) => document.getElementById(id);
+
+    function show(data) {
+      el("output").textContent = typeof data === "string"
+        ? data
+        : JSON.stringify(data, null, 2);
+    }
+
+    async function api(path, options = {}) {
+      const headers = options.headers || {};
+
+      if (options.body) {
+        headers["Content-Type"] = "application/json";
+      }
+
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(path, { ...options, headers });
+      const text = await response.text();
+      const body = text ? JSON.parse(text) : null;
+
+      if (!response.ok) {
+        throw new Error(body && body.detail ? body.detail : response.statusText);
+      }
+
+      return body;
+    }
+
+    async function registerUser() {
+      try {
+        const data = await api("/auth/register", {
+          method: "POST",
+          body: JSON.stringify({
+            email: el("email").value,
+            password: el("password").value
+          })
+        });
+        show(data);
+      } catch (err) {
+        show(err.message);
+      }
+    }
+
+    async function loginUser() {
+      try {
+        const data = await api("/auth/login", {
+          method: "POST",
+          body: JSON.stringify({
+            email: el("email").value,
+            password: el("password").value
+          })
+        });
+
+        token = data.access_token;
+        localStorage.setItem("token", token);
+
+        await loadMe();
+        await loadSites();
+        show("Logged in");
+      } catch (err) {
+        show(err.message);
+      }
+    }
+
+    function logoutUser() {
+      token = "";
+      localStorage.removeItem("token");
+      el("me").textContent = "Not logged in";
+      el("sites").innerHTML = "";
+      show("Logged out");
+    }
+
+    async function loadMe() {
+      if (!token) {
+        el("me").textContent = "Not logged in";
+        return;
+      }
+
+      try {
+        const data = await api("/auth/me");
+        el("me").textContent = `Logged in as ${data.email}`;
+      } catch {
+        el("me").textContent = "Not logged in";
+      }
+    }
+
+    async function createSite() {
+      try {
+        const data = await api("/sites", {
+          method: "POST",
+          body: JSON.stringify({
+            address: el("address").value,
+            customer_name: el("customerName").value || null,
+            status: el("status").value,
+            priority: el("priority").value
+          })
+        });
+
+        show(data);
+        await loadSites();
+      } catch (err) {
+        show(err.message);
+      }
+    }
+
+    async function loadSites() {
+      try {
+        const data = await api("/sites?limit=20&offset=0&sort_by=id&sort_order=desc");
+        show(data);
+
+        if (!data.items.length) {
+          el("sites").innerHTML = "<p class='muted'>No sites yet.</p>";
+          return;
+        }
+
+        el("sites").innerHTML = `
+          <p class="muted">Total: ${data.total}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Address</th>
+                <th>Customer</th>
+                <th>Status</th>
+                <th>Priority</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.items.map(site => `
+                <tr>
+                  <td>${site.id}</td>
+                  <td>${site.address}</td>
+                  <td>${site.customer_name || ""}</td>
+                  <td>${site.status}</td>
+                  <td>${site.priority || ""}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+      } catch (err) {
+        show(err.message);
+      }
+    }
+
+    loadMe();
+    if (token) {
+      loadSites();
+    }
+  </script>
+</body>
+</html>
