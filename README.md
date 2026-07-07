@@ -33,6 +33,12 @@ Small FastAPI + PostgreSQL backend for tracking FTTH/telecom work sites, statuse
 - done
 - reported
 
+## Site priorities
+
+- low
+- medium (default)
+- high
+
 ## Site event types
 
 - note
@@ -51,7 +57,7 @@ docker compose exec api python -m pytest -q
 
 ## API examples
 
-Protected site endpoints require a Bearer token.
+Protected site endpoints require a Bearer token. Site priority can be low, medium, or high.
 
 Set API base URL:
 
@@ -80,7 +86,7 @@ Create and use a site:
     SITE_ID=$(curl -s -X POST "$BASE_URL/sites" \
       -H "Authorization: Bearer $TOKEN" \
       -H "Content-Type: application/json" \
-      -d '{"address":"Objektas A","status":"new"}' \
+      -d '{"address":"Objektas A","status":"new","priority":"high"}' \
       | python3 -c 'import json, sys; print(json.load(sys.stdin)["id"])')
 
     curl "$BASE_URL/sites" \
