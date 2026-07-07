@@ -30,9 +30,7 @@ app.include_router(auth_router)
 app.include_router(sites_router)
 
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
-
-if FRONTEND_DIR.exists():
-    app.mount("/demo", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="demo")
+app.mount("/demo", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="demo")
 
 
 @app.get("/")
