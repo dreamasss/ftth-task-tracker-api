@@ -412,6 +412,7 @@ BASE_URL=https://your-api-url.example.com make smoke
 
 - API: https://ftth-task-tracker-api.onrender.com
 - Swagger docs: https://ftth-task-tracker-api.onrender.com/docs
+- Frontend demo: https://ftth-task-tracker-api.onrender.com/demo/
 - Health check: https://ftth-task-tracker-api.onrender.com/health
 
 Smoke test against the deployed API:

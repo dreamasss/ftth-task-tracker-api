@@ -18,6 +18,7 @@
 
 - API: https://ftth-task-tracker-api.onrender.com
 - Swagger docs: https://ftth-task-tracker-api.onrender.com/docs
+- Frontend demo: https://ftth-task-tracker-api.onrender.com/demo/
 
 ## Example use case
 
