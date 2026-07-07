@@ -72,6 +72,7 @@ def main():
         {
             "address": f"Smoke test site {uuid4()}",
             "status": "new",
+            "priority": "high",
             "comment": "Created by smoke test",
         },
         token,
@@ -79,6 +80,11 @@ def main():
     assert status == 200
 
     site_id = site["id"]
+    assert site["priority"] == "high"
+
+    status, priority_sites = request("GET", "/sites?priority=high", token=token)
+    assert status == 200
+    assert any(item["id"] == site_id for item in priority_sites["items"])
 
     status, sites = request("GET", "/sites", token=token)
     assert status == 200
