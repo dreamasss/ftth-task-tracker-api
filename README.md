@@ -57,7 +57,7 @@ docker compose exec api python -m pytest -q
 
 ## API examples
 
-Protected site endpoints require a Bearer token. Site priority can be low, medium, or high.
+Protected site endpoints require a Bearer token. Site priority can be low, medium, or high. Sites can also have an optional planned_date in YYYY-MM-DD format.
 
 Set API base URL:
 
@@ -86,7 +86,7 @@ Create and use a site:
     SITE_ID=$(curl -s -X POST "$BASE_URL/sites" \
       -H "Authorization: Bearer $TOKEN" \
       -H "Content-Type: application/json" \
-      -d '{"address":"Objektas A","status":"new","priority":"high"}' \
+      -d '{"address":"Objektas A","status":"new","priority":"high","planned_date":"2026-07-15"}' \
       | python3 -c 'import json, sys; print(json.load(sys.stdin)["id"])')
 
     curl "$BASE_URL/sites" \
