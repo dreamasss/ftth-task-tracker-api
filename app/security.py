@@ -2,8 +2,13 @@ import hashlib
 import hmac
 import os
 from base64 import b64decode, b64encode
+from datetime import datetime, timedelta, timezone
+
+import jwt
+from jwt import InvalidTokenError
 
 PBKDF2_ITERATIONS = 600_000
+JWT_ALGORITHM = "HS256"
 
 
 def hash_password(password: str) -> str:
@@ -35,7 +40,7 @@ def verify_password(password: str, stored_hash: str) -> bool:
     password_hash = hashlib.pbkdf2_hmac(
         "sha256",
         password.encode("utf-8"),
-        __import__("base64").b64decode(salt),
+        b64decode(salt),
         iterations,
     )
 
@@ -46,56 +51,23 @@ def verify_password(password: str, stored_hash: str) -> bool:
 
 
 def create_access_token(user_id: int, expires_in_seconds: int = 3600) -> str:
-    import json
-    import time
+    secret = os.getenv("SECRET_KEY", "dev-secret-change-me-minimum-32-bytes")
+    now = datetime.now(timezone.utc)
 
-    secret = os.getenv("SECRET_KEY", "dev-secret-change-me")
-    now = int(time.time())
     payload = {
         "sub": str(user_id),
         "iat": now,
-        "exp": now + expires_in_seconds,
+        "exp": now + timedelta(seconds=expires_in_seconds),
     }
 
-    payload_json = json.dumps(payload, separators=(",", ":"), sort_keys=True)
-    payload_b64 = b64encode(payload_json.encode("utf-8")).decode("ascii")
-
-    signature = hmac.new(
-        secret.encode("utf-8"),
-        payload_b64.encode("ascii"),
-        hashlib.sha256,
-    ).hexdigest()
-
-    return f"{payload_b64}.{signature}"
+    return jwt.encode(payload, secret, algorithm=JWT_ALGORITHM)
 
 
 def decode_access_token(token: str) -> int | None:
-    import json
-    import time
-
-    secret = os.getenv("SECRET_KEY", "dev-secret-change-me")
+    secret = os.getenv("SECRET_KEY", "dev-secret-change-me-minimum-32-bytes")
 
     try:
-        payload_b64, signature = token.rsplit(".", 1)
-    except ValueError:
-        return None
-
-    expected_signature = hmac.new(
-        secret.encode("utf-8"),
-        payload_b64.encode("ascii"),
-        hashlib.sha256,
-    ).hexdigest()
-
-    if not hmac.compare_digest(signature, expected_signature):
-        return None
-
-    try:
-        payload_json = b64decode(payload_b64.encode("ascii")).decode("utf-8")
-        payload = json.loads(payload_json)
-
-        if int(payload["exp"]) < int(time.time()):
-            return None
-
+        payload = jwt.decode(token, secret, algorithms=[JWT_ALGORITHM])
         return int(payload["sub"])
-    except (ValueError, KeyError, TypeError):
+    except (InvalidTokenError, KeyError, TypeError, ValueError):
         return None

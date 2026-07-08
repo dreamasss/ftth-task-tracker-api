@@ -3,7 +3,7 @@
 ## What this project demonstrates
 
 - FastAPI backend with PostgreSQL
-- JWT/Bearer token authentication
+- JWT Bearer token authentication with HS256
 - User-owned resources
 - CRUD operations for telecom/FTTH work sites
 - Site events/history tracking

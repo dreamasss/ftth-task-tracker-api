@@ -19,7 +19,7 @@ FTTH Task Tracker API is a deployed FastAPI backend project for tracking telecom
 
 - FastAPI backend design with explicit request and response schemas
 - PostgreSQL persistence with SQLAlchemy and Alembic migrations
-- JWT/Bearer token authentication
+- JWT Bearer token authentication with HS256
 - User-owned resources and access isolation
 - CRUD endpoints with filtering, sorting, pagination, and stats
 - Site event/history tracking

@@ -28,7 +28,7 @@ Authorization: Bearer <token>
 11. Backend validuoja tokeną ir pagal jį nustato `current_user`.
 12. Tada endpointas žino, kuris useris daro requestą.
 
-Svarbu: projekte naudojamas Bearer token, bet tai nėra pilnas JWT. Tai custom HMAC-signed access token.
+Svarbu: dabar projekte naudojamas standartinis JWT Bearer token su HS256 per PyJWT.
 
 ### Registracija (register)
 
@@ -63,7 +63,7 @@ Tokenas saugo user ID kaip `sub`.
 Tokenas turi `iat` kada sukurtas ir `exp` kada baigiasi.
 Tokenas pasirašomas su `SECRET_KEY`, todėl backend gali patikrinti, ar tokenas nebuvo pakeistas.
 
-Šitas tokenas yra Bearer token, bet techniškai tai nėra pilnas JWT, nes jis neturi JWT header dalies.
+Šitas tokenas yra JWT Bearer token. JWT turi tris dalis: header, payload ir signature.
 
 ### Bearer header
 
